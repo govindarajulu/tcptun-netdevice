@@ -16,10 +16,11 @@ struct net_device_ops tcptun_netdev_ops;
 void tcptun_setup(struct net_device *dev)
 {
 	ether_setup(dev);
+	memset(&tcptun_netdev_ops,0,sizeof(struct net_device_ops));
 
 	tcptun_netdev_ops.ndo_open = tcptun_open;
 	tcptun_netdev_ops.ndo_stop = tcptun_stop;
-
+	tcptun_netdev_ops.ndo_start_xmit = tcptun_tx;
 	dev->netdev_ops = &tcptun_netdev_ops;
 
 }
@@ -45,5 +46,10 @@ int tcptun_open(struct net_device *dev)
 int tcptun_stop(struct net_device *dev)
 {
 	netif_stop_queue(dev);
+	return 0;
+}
+
+int tcptun_tx(struct sk_buff *skb, struct net_device *dev)
+{
 	return 0;
 }
