@@ -1,5 +1,6 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include "tcptun.h"
 
 static __init int modinit(void)
 {
