@@ -13,4 +13,5 @@ OTHER_FILES += \
     Makefile
 
 HEADERS += \
-    tcptun.h
+    tcptun.h \
+    main.h
