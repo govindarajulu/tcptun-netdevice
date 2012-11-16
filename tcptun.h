@@ -14,5 +14,4 @@ struct tcptun_priv {
 void tcptun_setup(struct net_device *dev);
 int tcptun_open(struct net_device *dev);
 int tcptun_stop(struct net_device *dev);
-
 #endif // TCPTUN_H

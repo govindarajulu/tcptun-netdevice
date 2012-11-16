@@ -21,13 +21,13 @@ void tcptun_setup(struct net_device *dev)
 	tcptun_netdev_ops.ndo_stop = tcptun_stop;
 
 	dev->netdev_ops = &tcptun_netdev_ops;
-}
 
+}
 int tcptun_open(struct net_device *dev)
 {
 	{
-		/* adding the mac address
-		 *mac_addr[] will be distroyed after this block
+		/* addigning the mac address
+		 *mac_addr will be distroyed after this block
 		 */
 		char mac_addr[6];
 		mac_addr[0] = (char)(0);
