@@ -16,7 +16,7 @@ struct net_device_ops tcptun_netdev_ops;
 void tcptun_setup(struct net_device *dev)
 {
 	ether_setup(dev);
-	memset(&tcptun_netdev_ops,0,sizeof(struct net_device_ops));
+	memset(&tcptun_netdev_ops, 0, sizeof(struct net_device_ops));
 
 	tcptun_netdev_ops.ndo_open = tcptun_open;
 	tcptun_netdev_ops.ndo_stop = tcptun_stop;
@@ -24,6 +24,7 @@ void tcptun_setup(struct net_device *dev)
 	dev->netdev_ops = &tcptun_netdev_ops;
 
 }
+
 int tcptun_open(struct net_device *dev)
 {
 	{

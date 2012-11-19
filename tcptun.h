@@ -4,7 +4,7 @@
 #include <linux/netdevice.h>
 #include <linux/semaphore.h>
 
-#define TCPTUN_IFNAME "tcptap%d"
+#define TCPTUN_IFNAME "tcptunl%d"
 
 struct tcptun_priv {
 	int status;

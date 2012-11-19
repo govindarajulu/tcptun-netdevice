@@ -8,12 +8,13 @@ static __init int modinit(void)
 {
 	int err;
 
-	tcptun_netdev=alloc_netdev(sizeof(struct tcptun_priv), TCPTUN_IFNAME, tcptun_setup);
+	tcptun_netdev = alloc_netdev(sizeof(struct tcptun_priv),
+				     TCPTUN_IFNAME, tcptun_setup);
 	if (tcptun_netdev == NULL) {
 		printk(KERN_INFO "alloc_netdev failed\n");
 		goto goto_alloc_netdev_failed;
 	}
-	err=register_netdev(tcptun_netdev);
+	err = register_netdev(tcptun_netdev);
 	if (err < 0) {
 		printk(KERN_INFO "register_netdev failed\n");
 		goto goto_register_netdev_failed;
@@ -36,3 +37,4 @@ static __exit void modexit(void)
 
 module_init(modinit);
 module_exit(modexit);
+MODULE_LICENSE("GPL");
