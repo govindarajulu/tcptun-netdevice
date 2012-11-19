@@ -21,6 +21,7 @@ void tcptun_setup(struct net_device *dev)
 	tcptun_netdev_ops.ndo_open = tcptun_open;
 	tcptun_netdev_ops.ndo_stop = tcptun_stop;
 	tcptun_netdev_ops.ndo_start_xmit = tcptun_tx;
+	tcptun_netdev_ops.ndo_tx_timeout = tcptun_tx_timeout;
 	dev->netdev_ops = &tcptun_netdev_ops;
 
 }
@@ -53,4 +54,9 @@ int tcptun_stop(struct net_device *dev)
 int tcptun_tx(struct sk_buff *skb, struct net_device *dev)
 {
 	return 0;
+}
+
+void tcptun_tx_timeout(struct net_device *dev)
+{
+	printk(KERN_INFO"tx_timeout called \n");
 }

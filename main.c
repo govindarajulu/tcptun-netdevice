@@ -26,7 +26,8 @@ goto_alloc_netdev_failed:
 goto_register_netdev_failed:
 	free_netdev(tcptun_netdev);
 	return -1;
-}
+} /* end of static __init int modinit(void)*/
+
 
 static __exit void modexit(void)
 {
