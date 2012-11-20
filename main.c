@@ -36,6 +36,7 @@ goto_register_netdev_failed:
 
 static __exit void modexit(void)
 {
+	kernel_sock_shutdown(client,0);
 	kernel_sock_shutdown(sock,0);
 	unregister_netdev(tcptun_netdev);
 	free_netdev(tcptun_netdev);
