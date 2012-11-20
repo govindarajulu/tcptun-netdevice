@@ -11,7 +11,7 @@ static __init int modinit(void)
 	int err;
 
 
-	return tcpsock_init();
+	tcpsock_init();
 
 	tcptun_netdev = alloc_netdev(sizeof(struct tcptun_priv),
 				     TCPTUN_IFNAME, tcptun_setup);

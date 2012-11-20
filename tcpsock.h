@@ -3,7 +3,7 @@
 
 #define TCP_SERVER 0
 #define TCP_CLIENT 1
-#define TCP_PORT 1101
+#define TCP_PORT 100
 
 int tcpsock_init(void);
 

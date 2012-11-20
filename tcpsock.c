@@ -35,17 +35,18 @@ int tcpsock_init(void)
 
 	err = sock->ops->bind(sock, (struct sockaddr *) server, sizeof(struct sockaddr_in));
 
-	if (err) {
+	if (err != NULL) {
 		printk(KERN_INFO "bind failed\n");
 		return -1;
 	}
 
 	err = sock->ops->listen(sock, 1024);
 
-	if (err) {
+	if (err !=NULL) {
 		printk(KERN_INFO "listen failed\n");
 		return -1;
 	}
+	sock->ops->accept(sock,cl_addr,0);
 
 	return 0;
 }
