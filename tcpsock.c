@@ -20,7 +20,7 @@ int tcpsock_init(void)
 	iov = (struct iovec *) kmalloc(sizeof( struct iovec), GFP_KERNEL);
 	sock_msg = (struct msghdr *) kmalloc(sizeof(struct msghdr), GFP_KERNEL);
 	server = (struct sockaddr_in *) kmalloc(sizeof(struct sockaddr_in), GFP_KERNEL);
-	client = (struct socket *) kmalloc(sizeof(struct socket), GFP_KERNEL);
+	//client = (struct socket *) kmalloc(sizeof(struct socket), GFP_KERNEL);
 	cl_addr = (struct sockaddr_in *) kmalloc(sizeof(struct sockaddr_in), GFP_KERNEL);
 	data = (char *) kmalloc(3, GFP_KERNEL);
 	err = sock_create(AF_INET, SOCK_STREAM, IPPROTO_TCP, &sock);
@@ -34,20 +34,20 @@ int tcpsock_init(void)
 	server->sin_port = htons(TCP_PORT);
 	server->sin_addr.s_addr = htonl(INADDR_ANY);
 
-	err = sock->ops->bind(sock, (struct sockaddr *) server, sizeof(struct sockaddr_in));
+	err = kernel_bind(sock, (struct sockaddr *) server, sizeof(struct sockaddr_in));
 
 	if (err) {
 		printk(KERN_INFO "bind failed\n");
 		return -1;
 	}
 
-	err = sock->ops->listen(sock, 1024);
+	err = kernel_listen(sock, 1024);
 
 	if (err) {
 		printk(KERN_INFO "listen failed\n");
 		return -1;
 	}
-	sock->ops->accept(sock,client,0);
+	kernel_accept(sock,&client,0);
 
 	return 0;
 }
