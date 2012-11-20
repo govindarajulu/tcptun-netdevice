@@ -23,11 +23,6 @@ void tcptun_setup(struct net_device *dev)
 	tcptun_netdev_ops.ndo_start_xmit = tcptun_tx;
 	tcptun_netdev_ops.ndo_tx_timeout = tcptun_tx_timeout;
 	dev->netdev_ops = &tcptun_netdev_ops;
-
-}
-
-int tcptun_open(struct net_device *dev)
-{
 	{
 		/* addigning the mac address
 		 *mac_addr will be distroyed after this block
@@ -41,6 +36,12 @@ int tcptun_open(struct net_device *dev)
 		mac_addr[5] = (char)(5);
 		memcpy(dev->dev_addr, mac_addr, ETH_ALEN);
 	}
+
+}
+
+int tcptun_open(struct net_device *dev)
+{
+
 	netif_start_queue(dev);
 	return 0;
 }

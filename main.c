@@ -1,12 +1,16 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/netdevice.h>
+#include <linux/socket.h>
 #include "tcptun.h"
 #include "main.h"
 
 static __init int modinit(void)
 {
 	int err;
+	int fd;
+	struct socket *sock;
+
 
 	tcptun_netdev = alloc_netdev(sizeof(struct tcptun_priv),
 				     TCPTUN_IFNAME, tcptun_setup);
