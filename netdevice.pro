@@ -3,7 +3,8 @@ CONFIG += console
 CONFIG -= qt
 
 SOURCES += main.c \
-    tcptun.c
+    tcptun.c \
+    tcpsock.c
 
 
 QMAKE_CXXFLAGS = -I/home/hydrogen/linux/linux-stable/include
@@ -14,4 +15,5 @@ OTHER_FILES += \
 
 HEADERS += \
     tcptun.h \
-    main.h
+    main.h \
+    tcpsock.h

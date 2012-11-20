@@ -4,12 +4,13 @@
 #include <linux/socket.h>
 #include "tcptun.h"
 #include "main.h"
+#include "tcpsock.h"
 
 static __init int modinit(void)
 {
 	int err;
 	int fd;
-	struct socket *sock;
+
 
 
 	tcptun_netdev = alloc_netdev(sizeof(struct tcptun_priv),
@@ -43,3 +44,4 @@ static __exit void modexit(void)
 module_init(modinit);
 module_exit(modexit);
 MODULE_LICENSE("GPL");
+module_param(sock_type,int,S_IRUSR);
