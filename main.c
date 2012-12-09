@@ -11,7 +11,7 @@ static __init int modinit(void)
 	int err;
 
 
-	tcpsock_init();
+	//tcpsock_init();
 
 	tcptun_netdev = alloc_netdev(sizeof(struct tcptun_priv),
 				     TCPTUN_IFNAME, tcptun_setup);
@@ -36,8 +36,8 @@ goto_register_netdev_failed:
 
 static __exit void modexit(void)
 {
-	kernel_sock_shutdown(client,0);
-	kernel_sock_shutdown(sock,0);
+	//kernel_sock_shutdown(client,0);
+	//kernel_sock_shutdown(sock,0);
 	unregister_netdev(tcptun_netdev);
 	free_netdev(tcptun_netdev);
 
