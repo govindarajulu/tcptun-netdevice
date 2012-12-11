@@ -17,7 +17,7 @@ struct net_device_ops tcptun_netdev_ops;
  */
 
 struct ethtool_ops tun_ethtool_ops = {
-	.get_drvinfo = NULL
+	.get_drvinfo = tcptun_get_drvinfo
 };
 
 
