@@ -46,5 +46,5 @@ static __exit void modexit(void)
 module_init(modinit);
 module_exit(modexit);
 MODULE_LICENSE("GPL");
-module_param(sock_type, int, S_IRUSR);
-module_param(sock_port, int, S_IRUSR);
+//module_param(sock_type, int, S_IRUSR);
+//module_param(sock_port, int, S_IRUSR);
