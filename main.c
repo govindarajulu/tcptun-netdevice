@@ -2,6 +2,7 @@
 #include <linux/module.h>
 #include <linux/netdevice.h>
 #include <linux/socket.h>
+#include <linux/ethtool.h>
 #include "tcptun.h"
 #include "main.h"
 

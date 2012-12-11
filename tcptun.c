@@ -1,5 +1,6 @@
 #include <linux/etherdevice.h>
 #include <linux/string.h>
+#include <linux/ethtool.h>
 #include "tcptun.h"
 
 /* tcptun_netdev: *tcptun_netdev is dynamically
@@ -10,6 +11,23 @@ struct net_device *tcptun_netdev;
 /* tcptun_netdev_ops: used in net_device
  */
 struct net_device_ops tcptun_netdev_ops;
+
+/*
+ *ethtool_ops for tcptunl driver
+ */
+
+struct ethtool_ops tun_ethtool_ops = {
+	.get_drvinfo = NULL
+};
+
+
+void tcptun_get_drvinfo(struct net_device *dev, struct ethtool_drvinfo *drvinfo)
+{
+
+	strcpy(drvinfo->driver,TCPTUN_IFNAME);
+	strcpy(drvinfo->version,"0.0.1");
+}
+
 
 /* tcptun_setup: passed as argument in alloc_netdev
  */
@@ -23,6 +41,7 @@ void tcptun_setup(struct net_device *dev)
 	tcptun_netdev_ops.ndo_start_xmit = tcptun_tx;
 	tcptun_netdev_ops.ndo_tx_timeout = tcptun_tx_timeout;
 	dev->netdev_ops = &tcptun_netdev_ops;
+	dev->ethtool_ops = &tun_ethtool_ops;
 	{
 		/* addigning the mac address
 		 *mac_addr will be distroyed after this block
