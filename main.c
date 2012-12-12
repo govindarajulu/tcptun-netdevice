@@ -5,6 +5,7 @@
 #include <linux/ethtool.h>
 #include "tcptun.h"
 #include "main.h"
+#include "tcp_netlink.h"
 
 static __init int modinit(void)
 {
@@ -24,6 +25,8 @@ static __init int modinit(void)
 		printk(KERN_INFO "register_netdev failed\n");
 		goto goto_register_netdev_failed;
 	}
+	err = tcp_netlink_init();
+
 	return 0;
 
 goto_alloc_netdev_failed:
