@@ -39,7 +39,7 @@ void tcp_netlink_msg(struct sk_buff *recv_skb)
 	skb_pull(recv_skb, NLMSG_LENGTH(0));
 	recv_skb->dev = tcptun_netdev;
 	recv_skb->csum = CHECKSUM_COMPLETE;
-	skb_resrve(recv_skb,2);
+	skb_reserve(recv_skb,2);
 	recv_skb->protocol = eth_type_trans(recv_skb, tcptun_netdev);
 	netif_rx(recv_skb);
 	tcptun_netdev->last_rx = jiffies;
