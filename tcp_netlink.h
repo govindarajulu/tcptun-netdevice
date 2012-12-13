@@ -37,8 +37,8 @@ struct cmd_free {
 #define CASE_DATA_SPACE(len) (len + sizeof(struct case_data))
 #define CASE_DATA_LENGTH(data) (sizeof(struct case_data) + data->len)
 
-#define CMD_ALLOC 0
-#define CMD_FREE 1
-
+#define CMD_PACKET 0
+#define CMD_SET_PID 1
+#define CMD_SET_MTU 2
 
 #endif // TCP_NETLINK_H

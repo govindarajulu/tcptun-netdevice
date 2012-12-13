@@ -26,19 +26,25 @@ static __init int modinit(void)
 		goto goto_register_netdev_failed;
 	}
 	err = tcp_netlink_init();
+	if(err)
+		goto err_netlink failed;
+	return 0; /*RETURN SUCCESS*/
 
-	return 0;
-
-goto_alloc_netdev_failed:
+err_netlink:
+	unregister_netdev(tcptun_netdev);
+	free_netdev(tcptun_netdev);
 	return -1;
 goto_register_netdev_failed:
 	free_netdev(tcptun_netdev);
+	return -1;
+goto_alloc_netdev_failed:
 	return -1;
 } /* end of static __init int modinit(void)*/
 
 
 static __exit void modexit(void)
 {
+	tcp_netlink_exit();
 	unregister_netdev(tcptun_netdev);
 	free_netdev(tcptun_netdev);
 
