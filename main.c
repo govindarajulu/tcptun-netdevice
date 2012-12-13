@@ -27,7 +27,7 @@ static __init int modinit(void)
 	}
 	err = tcp_netlink_init();
 	if(err)
-		goto err_netlink failed;
+		goto err_netlink_failed;
 	return 0; /*RETURN SUCCESS*/
 
 err_netlink:
