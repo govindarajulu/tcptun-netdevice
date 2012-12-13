@@ -45,52 +45,11 @@ int nlsend_msg(int fd, struct sockaddr_nl *d_nladdr, void *data, int len)
 	free(nlh);
 }
 
-struct case_data *case0()
-{
-	struct case_data *d;
-	char string[] = "hi kernel, this is case 0";
-	d = malloc(CASE_DATA_SPACE(sizeof(string)));
-	//printf("--%d--\n",CASE_DATA_SPACE(sizeof(string)));
-	d->cmd = 0;
-	d->len = sizeof(string);
-	memcpy(CASE_DATA_DATA(d),"hi kernel, this is case 0",d->len);
-	return d;
-}
-
-struct case_data *case1()
-{
-	struct case_data *d;
-	d = malloc(CASE_DATA_SPACE(0));
-	d->cmd = 1;
-	d->len = 0;
-	return d;
-}
-
-void read_and_print(int fd, struct sockaddr_nl *sock)
-{
-
-	struct nlmsghdr *nl_hdr;
-	struct msghdr msg_hdr;
-	struct iovec iov;
-
-	nl_hdr = malloc(NLMSG_SPACE(MAX_PAYLOAD));
-	memset(nl_hdr, 0, NLMSG_SPACE(MAX_PAYLOAD));
-	iov.iov_base = nl_hdr;
-	iov.iov_len = NLMSG_SPACE(MAX_PAYLOAD);
-
-	msg_hdr.msg_name = sock;
-	msg_hdr.msg_namelen = sizeof(struct sockaddr_nl);
-	msg_hdr.msg_iov = &iov;
-	msg_hdr.msg_iovlen = 1;
-	recvmsg(fd, &msg_hdr, 0);
-	printf("received from kernel = %s", NLMSG_DATA(nl_hdr));
-}
-
 int main(int argc, char **argv)
 {
 	int cmd[5];
 	struct sockaddr_nl s_nladdr, d_nladdr;
-	struct case_data *data;
+	char data[]="abcdefghijklmnopqrstuvwxyz1234567890";
 	char name[] = "hi kernel, this is userspace";
 	int fd = socket(AF_NETLINK ,SOCK_RAW , NETLINK_NITRO );
 	struct cmd_alloc *cmdalloc = NULL;
@@ -108,8 +67,8 @@ int main(int argc, char **argv)
 	int next_arg;
 
 	memset(cmd,0,sizeof(cmd));
+/*
 
-	/*get args*/
 	do{
 		next_arg=getopt_long(argc,argv,short_opt,long_option,NULL);
 
@@ -190,7 +149,7 @@ int main(int argc, char **argv)
 			break;
 		}
 	}while(next_arg!=-1);
-
+*/
 	/* source address */
 	memset(&s_nladdr, 0 ,sizeof(s_nladdr));
 	s_nladdr.nl_family = AF_NETLINK ;
@@ -204,24 +163,7 @@ int main(int argc, char **argv)
 	d_nladdr.nl_pad = 0;
 	d_nladdr.nl_pid = 0; /* destined to kernel */
 
-
-	if(cmd[CMD_FREE]) {
-		if(cmdfree && cmdfree->ifname[0]) {
-			cmdfree->cmd = CMD_FREE;
-			nlsend_msg(fd, &d_nladdr, cmdfree, sizeof(struct cmd_free));
-		} else {
-			printf("--device <name> needed for --free\n");
-			exit(-1);
-		}
-	} else if(cmd[CMD_ALLOC]) {
-		if(cmdalloc && cmdalloc->ifname[0]) {
-			cmdalloc->cmd = CMD_ALLOC;
-			nlsend_msg(fd, &d_nladdr, cmdalloc, sizeof(struct cmd_alloc));
-		} else {
-			printf("more arguments needed for --alloc\n");
-			exit(-1);
-		}
-	}
+	nlsend_msg(fd, &d_nladdr, data, strlen(data));
 
 
 
