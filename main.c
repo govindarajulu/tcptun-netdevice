@@ -30,7 +30,7 @@ static __init int modinit(void)
 		goto err_netlink_failed;
 	return 0; /*RETURN SUCCESS*/
 
-err_netlink:
+err_netlink_failed:
 	unregister_netdev(tcptun_netdev);
 	free_netdev(tcptun_netdev);
 	return -1;
