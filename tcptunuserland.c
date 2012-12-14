@@ -12,7 +12,25 @@
 # define NETLINK_NITRO 17
 # define MAX_PAYLOAD 500
 
+void read_and_print(int fd, struct sockaddr_nl *sock)
+{
 
+	struct nlmsghdr *nl_hdr;
+	struct msghdr msg_hdr;
+	struct iovec iov;
+
+	nl_hdr = malloc(NLMSG_SPACE(MAX_PAYLOAD));
+	memset(nl_hdr, 0, NLMSG_SPACE(MAX_PAYLOAD));
+	iov.iov_base = nl_hdr;
+	iov.iov_len = NLMSG_SPACE(MAX_PAYLOAD);
+
+	msg_hdr.msg_name = sock;
+	msg_hdr.msg_namelen = sizeof(struct sockaddr_nl);
+	msg_hdr.msg_iov = &iov;
+	msg_hdr.msg_iovlen = 1;
+	recvmsg(fd, &msg_hdr, 0);
+	printf("received from kernel = %s", NLMSG_DATA(nl_hdr));
+}
 
 int nlsend_msg(int fd, struct sockaddr_nl *d_nladdr, void *data, int len)
 {
@@ -164,7 +182,7 @@ int main(int argc, char **argv)
 	d_nladdr.nl_pid = 0; /* destined to kernel */
 
 	nlsend_msg(fd, &d_nladdr, data, strlen(data));
-
+	read_and_print(fd,&d_nladdr);
 
 
 
