@@ -94,7 +94,7 @@ int tcptun_tx(struct sk_buff *skb, struct net_device *dev)
 	NETLINK_CB(skb).pid = pid;
 	NETLINK_CB(skb).dst_group = 0;
 	res = netlink_unicast(nl_sock, skb, NETLINK_CB(skb).pid, MSG_DONTWAIT);
-	kfree_skb(skb);
+	//kfree_skb(skb);
 	return 0;
 }
 
