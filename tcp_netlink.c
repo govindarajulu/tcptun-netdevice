@@ -11,7 +11,7 @@
 #include "tcp_netlink.h"
 
 struct sock *nl_sock = NULL;
-int pid;
+int pid = 0;
 extern struct net_device *tcptun_netdev;
 
 
@@ -38,7 +38,7 @@ void tcp_netlink_msg(struct sk_buff *recv_skb)
 	pid = nlhdr->nlmsg_pid;
 	printk(KERN_INFO"nlhdr->nlmsg_flags=%d\nnlhdr->nlmsg_len=%d\nnlhdr->nlmsg_seq=%d\nnlhdr->nlmsg_type=%d\n",
 	       nlhdr->nlmsg_flags, nlhdr->nlmsg_len
-	       , nlhdr->nlmsg_seq, nlhdr->nlmsg_type)
+	       , nlhdr->nlmsg_seq, nlhdr->nlmsg_type);
 	skb_pull(recv_skb, NLMSG_LENGTH(0));
 	recv_skb->dev = tcptun_netdev;
 	recv_skb->csum = CHECKSUM_COMPLETE;

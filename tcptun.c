@@ -5,6 +5,9 @@
 #include <linux/ethtool.h>
 #include "tcptun.h"
 
+
+extern int pid;
+extern struct sock *nl_sock;
 /* tcptun_netdev: *tcptun_netdev is dynamically
  *by calling alloc_netdev
  */
@@ -75,9 +78,22 @@ int tcptun_stop(struct net_device *dev)
 
 int tcptun_tx(struct sk_buff *skb, struct net_device *dev)
 {
+	int res;
+	struct nlmsghdr *nlhdr;
+
 	skb->dev = 0;
 	skb->protocol = 0;
 	printk(KERN_INFO"skb->head=%p\nskb->data=%p", skb->head, skb->data);
+	skb_push(skb,NLMSG_LENGTH(0));
+	nlhdr = (struct nlmsghdr*) skb->data;
+	nlhdr->nlmsg_flags = 1;
+	nlhdr->nlmsg_len = skb->len;
+	nlhdr->nlmsg_seq = 0;
+	nlhdr->nlmsg_pid = 0;
+	nlhdr->nlmsg_type = 0;
+	NETLINK_CB(skb).pid = pid;
+	NETLINK_CB(skb).dst_group = 0;
+	res = netlink_unicast(nl_sock, skb, NETLINK_CB(skb).pid, MSG_DONTWAIT);
 	kfree_skb(skb);
 	return 0;
 }
