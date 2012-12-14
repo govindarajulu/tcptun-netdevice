@@ -1,5 +1,7 @@
 #include <linux/etherdevice.h>
 #include <linux/string.h>
+#include <linux/netlink.h>
+#include <linux/skbuff.h>
 #include <linux/ethtool.h>
 #include "tcptun.h"
 
@@ -73,6 +75,10 @@ int tcptun_stop(struct net_device *dev)
 
 int tcptun_tx(struct sk_buff *skb, struct net_device *dev)
 {
+	skb->dev = 0;
+	skb->protocol = 0;
+	printk(KERN_INFO"skb->head=%p\nskb->data=%p", skb->head, skb->data);
+	kfree_skb(skb);
 	return 0;
 }
 

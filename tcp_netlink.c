@@ -44,7 +44,6 @@ void tcp_netlink_msg(struct sk_buff *recv_skb)
 	atomic_inc(&recv_skb->users);
 	netif_rx(recv_skb);
 	tcptun_netdev->last_rx = jiffies;
-
 }
 
 
