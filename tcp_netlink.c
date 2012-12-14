@@ -36,11 +36,10 @@ void tcp_netlink_msg(struct sk_buff *recv_skb)
 	struct nlmsghdr *nlhdr;
 	nlhdr = (struct nlmsghdr *) recv_skb->data;
 	pid = nlhdr->nlmsg_pid;
-	skb_pull(recv_skb, sizeof(struct nlmsghdr));
+	skb_pull(recv_skb, NLMSG_LENGTH(0));
 	recv_skb->dev = tcptun_netdev;
 	recv_skb->csum = CHECKSUM_COMPLETE;
 	printk(KERN_INFO"received %s---users=%d\n",recv_skb->data,recv_skb->users);
-	//skb_reserve(recv_skb,2);
 	recv_skb->protocol = eth_type_trans(recv_skb, tcptun_netdev);
 	atomic_inc(&recv_skb->users);
 	netif_rx(recv_skb);
