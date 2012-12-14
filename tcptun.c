@@ -37,7 +37,7 @@ void tcptun_setup(struct net_device *dev)
 {
 	ether_setup(dev);
 	memset(&tcptun_netdev_ops, 0, sizeof(struct net_device_ops));
-
+	dev->hard_header_len = ETH_HLEN + NLMSG_LENGTH(0);
 	tcptun_netdev_ops.ndo_open = tcptun_open;
 	tcptun_netdev_ops.ndo_stop = tcptun_stop;
 	tcptun_netdev_ops.ndo_start_xmit = tcptun_tx;
