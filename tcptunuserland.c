@@ -100,7 +100,13 @@ void *read_from_tcpsock(void * nothing)
 			perror("read");
 			pthread_exit(NULL);
 		}
-		len = ntohl(len);
+		printf("len = %d",len);
+		len = ntohs(len);
+		printf("--len = %d\n",len);
+		if(len > MAX_PAYLOAD) {
+			printf("length exceeds MAX_PAYLOAD");
+			exit(EXIT_FAILURE);
+		}
 		res = readn(tcpsend_fd, data, len);
 		if(res != len) {
 			perror("readn");
