@@ -309,7 +309,7 @@ int main(int argc, char **argv)
 	//nlsend_msg(fd, &d_nladdr, data, strlen(data));
 	//read_and_print(fd,&d_nladdr);
 	res = pthread_create(&recv_tcpthread, NULL, read_from_tcpsock, NULL);
-	
+	nlsend_msg(netlink_fd, &d_nladdr, "abcdefghijklmnopqrstuvwxyz1234567890", strlen("abcdefghijklmnopqrstuvwxyz1234567890"));	
 	pthread_create(&recv_nlthread, NULL, read_from_netlink, NULL);
 	pthread_join(recv_tcpthread, NULL);
 
