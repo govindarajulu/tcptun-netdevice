@@ -163,14 +163,20 @@ int main(int argc, char **argv)
 		perror("socket tcpsock_fd");
 		exit(EXIT_FAILURE);
 	}
-
 	bzero(&s_sockaddr, sizeof(s_sockaddr));
 	bzero(&c_sockaddr, sizeof(c_sockaddr));
 
+	s_sockaddr.sin_family = AF_INET;
+	s_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	s_sockaddr.sin_port = htons(d_ipport);
+
+	c_sockaddr.sin_family = AF_INET;
+	c_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	c_sockaddr.sin_port = htons(INADDR_ANY);
+
+
 	if(server) {
-		s_sockaddr.sin_family = AF_INET;
-		s_sockaddr.sin_addr.s_addr = INADDR_ANY;
-		s_sockaddr.sin_port = htons(d_ipport);
+
 		res = bind(tcpsock_fd, (struct sockaddr *) &s_sockaddr, sizeof(s_sockaddr));
 		if (res < 0) {
 			printf("error in bind\n");
@@ -197,7 +203,7 @@ int main(int argc, char **argv)
 		//	perror("gethostbyname:");
 		//	exit(EXIT_FAILURE);
 		//}
-		c_sockaddr.sin_family = AF_INET;
+
 		//bcopy(ipaddr->h_addr,&c_sockaddr.sin_addr.s_addr, ipaddr->h_length);
 		c_sockaddr.sin_addr.s_addr = inet_addr(d_ipaddr);
 		c_sockaddr.sin_port = htons(d_ipport);
