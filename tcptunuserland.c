@@ -83,10 +83,13 @@ int nlsend_msg(int fd, struct sockaddr_nl *d_nladdr, void *data, int len)
 
 void *read_from_tcpsock(void * nothing)
 {
+	int res;
 	char *data;
 	data = malloc(MAX_PAYLOAD);
 	while(1) {
-		read(tcpsend_fd, data, MAX_PAYLOAD);
+		res = read(tcpsend_fd, data, MAX_PAYLOAD);
+		if(res < 0)
+			perror("read");
 		printf("received %s",data);
 	}
 
