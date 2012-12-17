@@ -31,7 +31,7 @@ int server = 0;
 
 int netlink_fd, tcpsock_fd, tcpsend_fd;
 
-int readn(int fd, char *data, u_int32_t len);
+int readn(int fd, char *data, u_int8_t len);
 void read_and_print(int fd, struct sockaddr_nl *sock);
 int nlsend_msg(int fd, struct sockaddr_nl *d_nladdr, void *data, int len);
 void *read_from_tcpsock(void * nothing);
