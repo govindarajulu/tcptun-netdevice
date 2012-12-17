@@ -31,6 +31,12 @@ int server = 0;
 
 int netlink_fd, tcpsock_fd, tcpsend_fd;
 
+int readn(int fd, char *data, u_int32_t len);
+void read_and_print(int fd, struct sockaddr_nl *sock);
+int nlsend_msg(int fd, struct sockaddr_nl *d_nladdr, void *data, int len);
+void *read_from_tcpsock(void * nothing);
+
+
 void read_and_print(int fd, struct sockaddr_nl *sock)
 {
 
@@ -86,16 +92,44 @@ void *read_from_tcpsock(void * nothing)
 {
 	int res;
 	char *data;
+	u_int8_t len;
 	data = malloc(MAX_PAYLOAD);
 	while(1) {
-		res = read(tcpsend_fd, data, MAX_PAYLOAD);
-		if(res < 0)
+		res = read(tcpsend_fd, &len, sizeof(len));
+		if(res < 0) {
 			perror("read");
+			pthread_exit(NULL);
+		}
+		len = ntohl(len);
+		res = readn(tcpsend_fd, data, len);
+		if(res != len) {
+			perror("readn");
+			pthread_exit(NULL);
+		}
 		printf("received %s",data);
-		write(tcpsend_fd, "1234567890", 11);
+		res = write(netlink_fd, data, len);
+		if(res < 0 ) {
+			perror("write in netlink_fd in read_from_tcpsock");
+			pthread_exit(NULL);
+		}
 	}
-
 }
+
+int readn(int fd, char *data, u_int8_t len)
+{
+	u_int8_t readlen = 0;
+	int res;
+	while(readlen < len) {
+		res = read(fd, (void *)(data + readlen), len - readlen);
+		if(res == -1) {
+			perror("readn");
+			return EXIT_FAILURE;
+		}
+		readlen = readlen + res;
+	}
+	return readlen;
+}
+
 
 
 
