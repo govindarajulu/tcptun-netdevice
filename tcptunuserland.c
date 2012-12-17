@@ -31,7 +31,7 @@ int server = 0;
 
 int netlink_fd, tcpsock_fd, tcpsend_fd;
 
-int readn(int fd, char *data, u_int8_t len);
+int readn(int fd, char *data, u_int16_t len);
 void read_and_print(int fd, struct sockaddr_nl *sock);
 int nlsend_msg(int fd, struct sockaddr_nl *d_nladdr, void *data, int len);
 void *read_from_tcpsock(void * nothing);
@@ -92,10 +92,10 @@ void *read_from_tcpsock(void * nothing)
 {
 	int res;
 	char *data;
-	u_int8_t len;
+	u_int16_t len;
 	data = malloc(MAX_PAYLOAD);
 	while(1) {
-		res = read(tcpsend_fd, &len, sizeof(len));
+		res = read(tcpsend_fd, &len, sizeof(u_int16_t));
 		if(res < 0) {
 			perror("read");
 			pthread_exit(NULL);
@@ -115,9 +115,9 @@ void *read_from_tcpsock(void * nothing)
 	}
 }
 
-int readn(int fd, char *data, u_int8_t len)
+int readn(int fd, char *data, u_int16_t len)
 {
-	u_int8_t readlen = 0;
+	u_int16_t readlen = 0;
 	int res;
 	while(readlen < len) {
 		res = read(fd, (void *)(data + readlen), len - readlen);
