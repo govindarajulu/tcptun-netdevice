@@ -35,6 +35,7 @@ int readn(int fd, char *data, u_int16_t len);
 void read_and_print(int fd, struct sockaddr_nl *sock);
 int nlsend_msg(int fd, struct sockaddr_nl *d_nladdr, void *data, int len);
 void *read_from_tcpsock(void * nothing);
+void *read_from_netlink(void *nothing);
 
 
 void read_and_print(int fd, struct sockaddr_nl *sock)
@@ -121,6 +122,41 @@ void *read_from_tcpsock(void * nothing)
 	}
 }
 
+void *read_from_netlink(void *nothing)
+{
+	struct nlmsghdr *nl_hdr;
+	struct msghdr msg_hdr;
+	struct iovec iov;
+	u_int16_t len;
+	int res;
+
+	nl_hdr = malloc(NLMSG_SPACE(MAX_PAYLOAD));
+	memset(nl_hdr, 0, NLMSG_SPACE(MAX_PAYLOAD));
+	iov.iov_base = nl_hdr;
+	iov.iov_len = NLMSG_SPACE(MAX_PAYLOAD);
+
+	msg_hdr.msg_name = &d_nladdr;
+	msg_hdr.msg_namelen = sizeof(struct sockaddr_nl);
+	msg_hdr.msg_iov = &iov;
+	msg_hdr.msg_iovlen = 1;
+	while(1) {
+	len = recvmsg(netlink_fd, &msg_hdr, 0);
+	len = len - NLMSG_LENGTH(0);
+	printf("received from kernel = %s", NLMSG_DATA(nl_hdr));
+	len = htons(len);
+	res = write(tcpsend_fd, &len, sizeof(len));
+	if(res < 0) {
+		perror("write in read_from_nl");
+		pthread_exit(NULL);
+	}
+	res = writen(tcpsend_fd, NLMSG_DATA(nl_hdr), ntohs(len));
+	if(res < 0) {
+		perror("writen in read_from_nl");
+		pthread_exit(NULL);
+	}
+	}
+}
+
 int readn(int fd, char *data, u_int16_t len)
 {
 	u_int16_t readlen = 0;
@@ -128,7 +164,7 @@ int readn(int fd, char *data, u_int16_t len)
 	while(readlen < len) {
 		res = read(fd, (void *)(data + readlen), len - readlen);
 		if(res == -1) {
-			perror("readn");
+			perror("in readn");
 			return EXIT_FAILURE;
 		}
 		readlen = readlen + res;
@@ -136,7 +172,20 @@ int readn(int fd, char *data, u_int16_t len)
 	return readlen;
 }
 
-
+int writen(int fd, char *data, u_int16_t len)
+{
+	u_int16_t writelen = 0;
+	int res;
+	while(writelen < len) {
+		res = write(fd, (void *)(data + writelen), len - writelen);
+		if(res == -1) {
+			perror("writen");
+			return EXIT_FAILURE;
+		}
+		writelen = writelen + res;
+	}
+	return writelen;
+}
 
 
 int main(int argc, char **argv)
