@@ -1,9 +1,9 @@
-
-# include <sys/types.h>
-# include <stdio.h>
-# include <sys/socket.h>
-# include <linux/netlink.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <linux/netlink.h>
+#include <unistd.h>
 #include <string.h>
 #include <assert.h>
 #include <getopt.h>
@@ -16,7 +16,6 @@
 #define USERSPACE_PROGRAM
 #include "tcp_netlink.h"
 #define NETLINK_NITRO 17
-#define MAX_PAYLOAD 500
 
 
 struct sockaddr_nl s_nladdr, d_nladdr;
@@ -81,6 +80,19 @@ int nlsend_msg(int fd, struct sockaddr_nl *d_nladdr, void *data, int len)
 	sendmsg(fd, &msg, 0);
 	free(nlh);
 }
+
+void *read_from_tcpsock(void * nothing)
+{
+	char *data;
+	data = malloc(MAX_PAYLOAD);
+	while(1) {
+		read(tcpsend_fd, data, MAX_PAYLOAD);
+		printf("received %s",data);
+	}
+
+}
+
+
 
 int main(int argc, char **argv)
 {
@@ -187,6 +199,9 @@ int main(int argc, char **argv)
 
 	//nlsend_msg(fd, &d_nladdr, data, strlen(data));
 	//read_and_print(fd,&d_nladdr);
+	res = pthread_create(&recv_tcpthread, NULL, read_from_tcpsock, NULL);
+	pthread_join(recv_tcpthread, NULL);
+
 	if(server)
 		close(tcpsend_fd);
 	close(tcpsock_fd);

@@ -9,6 +9,8 @@
 #endif
 
 #define NETLINK_TCP 17
+#define MAX_PAYLOAD 5000
+
 #ifndef USERSPACE_PROGRAM
 int tcp_netlink_init(void);
 void tcp_netlink_msg(struct sk_buff *recv_skb);
