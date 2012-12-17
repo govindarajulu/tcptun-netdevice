@@ -3,14 +3,18 @@
 # include <stdio.h>
 # include <sys/socket.h>
 # include <linux/netlink.h>
-# include <stdlib.h>
-# include <string.h>
-# include <assert.h>
-# include <getopt.h>
-# define USERSPACE_PROGRAM
-# include "tcp_netlink.h"
-# define NETLINK_NITRO 17
-# define MAX_PAYLOAD 500
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+#include <getopt.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <error.h>
+#include <sys/types.h>
+#define USERSPACE_PROGRAM
+#include "tcp_netlink.h"
+#define NETLINK_NITRO 17
+#define MAX_PAYLOAD 500
 
 void read_and_print(int fd, struct sockaddr_nl *sock)
 {
@@ -65,22 +69,27 @@ int nlsend_msg(int fd, struct sockaddr_nl *d_nladdr, void *data, int len)
 
 int main(int argc, char **argv)
 {
-	int d_ipport=2551;
-	char d_ipaddr[16];
-	int server=0;
-	struct sockaddr_nl s_nladdr, d_nladdr;
-	int netlink_fd = socket(AF_NETLINK ,SOCK_RAW , NETLINK_NITRO );
+	int res;
+	int d_ipport = 2551;
+	char d_ipaddr[16] = "127.0.0.1";
+	int server = 0;
 
-	const char *short_opt="d:p:s";
-	const struct option long_option[]={
-		{"dest",1,NULL,'d'},
-		{"port",1,NULL,'p'},
-		{"serv",0,NULL,'s'}
+	struct sockaddr_nl s_nladdr, d_nladdr;
+	struct sockaddr_in s_sockaddr, c_sockaddr;
+	socklen_t socklen;
+
+	int netlink_fd, tcpsock_fd;
+
+	const char *short_opt = "d:p:s";
+	const struct option long_option[] = {
+		{"dest", 1, NULL, 'd'},
+		{"port", 1, NULL, 'p'},
+		{"serv", 0, NULL, 's'}
 	};
 	int next_arg;
 
 	do{
-		next_arg=getopt_long(argc,argv,short_opt,long_option,NULL);
+		next_arg = getopt_long(argc,argv,short_opt,long_option,NULL);
 
 		switch(next_arg)
 		{
@@ -91,21 +100,33 @@ int main(int argc, char **argv)
 			d_ipport = atoi(optarg);
 			break;
 		case 's':
-			server =1;
+			server = 1;
 			break;
 		case -1:
 			break;
 		case '?':
 			break;
 		}
-	}while(next_arg!=-1);
+	}while(next_arg != -1);
+
+	netlink_fd = socket(AF_NETLINK ,SOCK_RAW , NETLINK_NITRO );
+	if (netlink_fd < 0) {
+		perror("socket: netlink_fd");
+		exit(EXIT_FAILURE);
+	}
+
 
 	/* source address */
 	memset(&s_nladdr, 0 ,sizeof(s_nladdr));
 	s_nladdr.nl_family = AF_NETLINK ;
 	s_nladdr.nl_pad = 0;
 	s_nladdr.nl_pid = getpid();
-	bind(netlink_fd, (struct sockaddr*)&s_nladdr, sizeof(s_nladdr));
+	res = bind(netlink_fd, (struct sockaddr*)&s_nladdr, sizeof(s_nladdr));
+
+	if (res < 0 ) {
+		perror("bind netlink_fd");
+		exit(EXIT_FAILURE);
+	}
 
 	/* destination address */
 	memset(&d_nladdr, 0, sizeof(d_nladdr));
@@ -113,9 +134,26 @@ int main(int argc, char **argv)
 	d_nladdr.nl_pad = 0;
 	d_nladdr.nl_pid = 0; /* destined to kernel */
 
+	tcpsock_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if(tcpsock_fd < 0 ) {
+		perror("socket tcpsock_fd");
+		exit(EXIT_FAILURE);
+	}
+
+	bzero(&s_sockaddr, sizeof(s_sockaddr));
+	bzero(&c_sockaddr, sizeof(c_sockaddr));
+	s_sockaddr.sin_family = AF_INET;
+	s_sockaddr.sin_addr.s_addr = INADDR_ANY;
+	s_sockaddr.sin_port = htons(d_ipport);
+	res = bind(tcpsock_fd, (struct sockaddr *) &s_sockaddr, sizeof(s_sockaddr));
+	if (res < 0) {
+		perror("bind s_sockaddr");
+		exit(EXIT_FAILURE);
+	}
+
 	//nlsend_msg(fd, &d_nladdr, data, strlen(data));
 	//read_and_print(fd,&d_nladdr);
-
+	close(tcpsock_fd);
 	close(netlink_fd);
 	return (EXIT_SUCCESS);
 
