@@ -93,9 +93,10 @@ void *read_from_tcpsock(void * nothing)
 {
 	int res;
 	char *data;
-	u_int16_t len;
+	u_int16_t len = 0;
 	data = malloc(MAX_PAYLOAD);
 	while(1) {
+		len = 0;
 		res = read(tcpsend_fd, &len, sizeof(u_int16_t));
 		if(res < 0) {
 			perror("read");
@@ -162,6 +163,7 @@ int readn(int fd, char *data, u_int16_t len)
 	u_int16_t readlen = 0;
 	int res;
 	while(readlen < len) {
+		printf("len - readlen=%d\n",len-readlen);
 		res = read(fd, (void *)(data + readlen), len - readlen);
 		if(res == -1) {
 			perror("in readn");
@@ -308,6 +310,8 @@ int main(int argc, char **argv)
 	//nlsend_msg(fd, &d_nladdr, data, strlen(data));
 	//read_and_print(fd,&d_nladdr);
 	res = pthread_create(&recv_tcpthread, NULL, read_from_tcpsock, NULL);
+	
+	pthread_create(&recv_nlthread, NULL, read_from_netlink, NULL);
 	pthread_join(recv_tcpthread, NULL);
 
 	if(server)
