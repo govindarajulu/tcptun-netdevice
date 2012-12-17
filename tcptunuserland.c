@@ -91,6 +91,7 @@ void *read_from_tcpsock(void * nothing)
 		if(res < 0)
 			perror("read");
 		printf("received %s",data);
+		write(tcpsend_fd, "1234567890", 11);
 	}
 
 }
@@ -130,6 +131,7 @@ int main(int argc, char **argv)
 
 	netlink_fd = socket(AF_NETLINK ,SOCK_RAW , NETLINK_NITRO );
 	if (netlink_fd < 0) {
+		printf("error in socket\n");
 		perror("socket: netlink_fd");
 		exit(EXIT_FAILURE);
 	}
@@ -143,6 +145,7 @@ int main(int argc, char **argv)
 	res = bind(netlink_fd, (struct sockaddr*)&s_nladdr, sizeof(s_nladdr));
 
 	if (res < 0 ) {
+		printf("error in bind\n");
 		perror("bind netlink_fd");
 		exit(EXIT_FAILURE);
 	}
@@ -155,6 +158,7 @@ int main(int argc, char **argv)
 
 	tcpsock_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if(tcpsock_fd < 0 ) {
+		printf("error in socket\n");
 		perror("socket tcpsock_fd");
 		exit(EXIT_FAILURE);
 	}
@@ -166,6 +170,7 @@ int main(int argc, char **argv)
 	s_sockaddr.sin_port = htons(d_ipport);
 	res = bind(tcpsock_fd, (struct sockaddr *) &s_sockaddr, sizeof(s_sockaddr));
 	if (res < 0) {
+		printf("error in bind\n");
 		perror("bind s_sockaddr");
 		exit(EXIT_FAILURE);
 	}
@@ -179,6 +184,7 @@ int main(int argc, char **argv)
 		socklen = sizeof(c_sockaddr);
 		tcpsend_fd = accept(tcpsock_fd, (struct sockaddr *)&c_sockaddr, &socklen);
 		if(tcpsend_fd < 0) {
+			printf("error in accept\n");
 			perror("accept");
 			exit(EXIT_FAILURE);
 		}
@@ -186,6 +192,7 @@ int main(int argc, char **argv)
 		struct hostent *ipaddr;
 		ipaddr = gethostbyname(d_ipaddr);
 		if(ipaddr == NULL) {
+			printf("error in gethostbyname\n");
 			perror("gethostbyname:");
 			exit(EXIT_FAILURE);
 		}
@@ -194,6 +201,7 @@ int main(int argc, char **argv)
 		c_sockaddr.sin_port = htons(d_ipport);
 		res = connect(tcpsock_fd, (struct sockaddr *)&c_sockaddr, sizeof(c_sockaddr));
 		if(res < 0) {
+			printf("error in connect\n");
 			perror("connect:");
 			exit(EXIT_FAILURE);
 		}
