@@ -199,7 +199,7 @@ int main(int argc, char **argv)
 		//}
 		c_sockaddr.sin_family = AF_INET;
 		//bcopy(ipaddr->h_addr,&c_sockaddr.sin_addr.s_addr, ipaddr->h_length);
-		c_sockaddr.sin_addr = inet_addr(d_ipaddr);
+		c_sockaddr.sin_addr.s_addr = inet_addr(d_ipaddr);
 		c_sockaddr.sin_port = htons(d_ipport);
 		res = connect(tcpsock_fd, (struct sockaddr *)&c_sockaddr, sizeof(c_sockaddr));
 		if(res < 0) {
