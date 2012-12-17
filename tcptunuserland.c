@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include <netdb.h>
+#include <arpa/inet.h>
 #define USERSPACE_PROGRAM
 #include "tcp_netlink.h"
 #define NETLINK_NITRO 17
@@ -189,15 +190,16 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 	} else {
-		struct hostent *ipaddr;
-		ipaddr = gethostbyname(d_ipaddr);
-		if(ipaddr == NULL) {
-			printf("error in gethostbyname\n");
-			perror("gethostbyname:");
-			exit(EXIT_FAILURE);
-		}
+		//struct hostent *ipaddr;
+		//ipaddr = gethostbyname(d_ipaddr);
+		//if(ipaddr == NULL) {
+		//	printf("error in gethostbyname\n");
+		//	perror("gethostbyname:");
+		//	exit(EXIT_FAILURE);
+		//}
 		c_sockaddr.sin_family = AF_INET;
-		bcopy(ipaddr->h_addr,&c_sockaddr.sin_addr.s_addr, ipaddr->h_length);
+		//bcopy(ipaddr->h_addr,&c_sockaddr.sin_addr.s_addr, ipaddr->h_length);
+		c_sockaddr.sin_addr = inet_addr(d_ipaddr);
 		c_sockaddr.sin_port = htons(d_ipport);
 		res = connect(tcpsock_fd, (struct sockaddr *)&c_sockaddr, sizeof(c_sockaddr));
 		if(res < 0) {
