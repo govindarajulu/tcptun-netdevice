@@ -138,7 +138,7 @@ int main(int argc, char **argv)
 	d_nladdr.nl_pad = 0;
 	d_nladdr.nl_pid = 0; /* destined to kernel */
 
-	tcpsock_fd = socket(AF_INET, SOCK_STREAM, 0);
+	tcpsock_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if(tcpsock_fd < 0 ) {
 		perror("socket tcpsock_fd");
 		exit(EXIT_FAILURE);
