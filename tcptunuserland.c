@@ -11,10 +11,25 @@
 #include <sys/socket.h>
 #include <error.h>
 #include <sys/types.h>
+#include <pthread.h>
+#include <netdb.h>
 #define USERSPACE_PROGRAM
 #include "tcp_netlink.h"
 #define NETLINK_NITRO 17
 #define MAX_PAYLOAD 500
+
+
+struct sockaddr_nl s_nladdr, d_nladdr;
+struct sockaddr_in s_sockaddr, c_sockaddr;
+socklen_t socklen;
+pthread_t recv_tcpthread, recv_nlthread;
+
+int res;
+int d_ipport = 2551;
+char d_ipaddr[16] = "127.0.0.1";
+int server = 0;
+
+int netlink_fd, tcpsock_fd, tcpsend_fd;
 
 void read_and_print(int fd, struct sockaddr_nl *sock)
 {
@@ -69,17 +84,6 @@ int nlsend_msg(int fd, struct sockaddr_nl *d_nladdr, void *data, int len)
 
 int main(int argc, char **argv)
 {
-	int res;
-	int d_ipport = 2551;
-	char d_ipaddr[16] = "127.0.0.1";
-	int server = 0;
-
-	struct sockaddr_nl s_nladdr, d_nladdr;
-	struct sockaddr_in s_sockaddr, c_sockaddr;
-	socklen_t socklen;
-
-	int netlink_fd, tcpsock_fd;
-
 	const char *short_opt = "d:p:s";
 	const struct option long_option[] = {
 		{"dest", 1, NULL, 'd'},
@@ -149,6 +153,36 @@ int main(int argc, char **argv)
 	if (res < 0) {
 		perror("bind s_sockaddr");
 		exit(EXIT_FAILURE);
+	}
+	if(server) {
+
+		res = listen(tcpsock_fd, 1024);
+		if(res < 0) {
+			perror("listen");
+			exit(EXIT_FAILURE);
+		}
+		socklen = sizeof(c_sockaddr);
+		tcpsend_fd = accept(tcpsock_fd, (struct sockaddr *)&c_sockaddr, &socklen);
+		if(tcpsend_fd < 0) {
+			perror("accept");
+			exit(EXIT_FAILURE);
+		}
+	} else {
+		struct hostent *ipaddr;
+		ipaddr = gethostbyname(d_ipaddr);
+		if(ipaddr == NULL) {
+			perror("gethostbyname:");
+			exit(EXIT_FAILURE);
+		}
+		c_sockaddr.sin_family = AF_INET;
+		bcopy(ipaddr->h_addr,&c_sockaddr.sin_addr.s_addr, ipaddr->h_length);
+		c_sockaddr.sin_port = htons(d_ipport);
+		res = connect(tcpsock_fd, (struct sockaddr *)&c_sockaddr, sizeof(c_sockaddr));
+		if(res < 0) {
+			perror("connect:");
+			exit(EXIT_FAILURE);
+		}
+		tcpsend_fd = tcpsock_fd;
 	}
 
 	//nlsend_msg(fd, &d_nladdr, data, strlen(data));
