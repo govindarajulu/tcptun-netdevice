@@ -65,101 +65,33 @@ int nlsend_msg(int fd, struct sockaddr_nl *d_nladdr, void *data, int len)
 
 int main(int argc, char **argv)
 {
-	int cmd[5];
+	int d_ipport=2551;
+	char d_ipaddr[16];
+	int server=0;
 	struct sockaddr_nl s_nladdr, d_nladdr;
-	char data[]="abcdefghijklmnopqrstuvwxyz1234567890";
-	char name[] = "hi kernel, this is userspace";
-	int fd = socket(AF_NETLINK ,SOCK_RAW , NETLINK_NITRO );
-	struct cmd_alloc *cmdalloc = NULL;
-	struct cmd_free *cmdfree = NULL;
-	const char *short_opt="afw:r:c:i:d:";
+	int netlink_fd = socket(AF_NETLINK ,SOCK_RAW , NETLINK_NITRO );
+
+	const char *short_opt="d:p:s";
 	const struct option long_option[]={
-		{"alloc",0,NULL,'a'},
-		{"free",0,NULL,'f'},
-		{"wq",1,NULL,'w'},
-		{"rq",1,NULL,'r'},
-		{"cq",1,NULL,'c'},
-		{"intr",1,NULL,'i'},
-		{"device",1,NULL,'d'}
+		{"dest",1,NULL,'d'},
+		{"port",1,NULL,'p'},
+		{"serv",0,NULL,'s'}
 	};
 	int next_arg;
-
-	memset(cmd,0,sizeof(cmd));
-/*
 
 	do{
 		next_arg=getopt_long(argc,argv,short_opt,long_option,NULL);
 
 		switch(next_arg)
 		{
-		case 'a':
-			cmd[CMD_ALLOC] = 1;
-			if(cmdalloc == NULL ) {
-				cmdalloc = malloc(sizeof(struct cmd_alloc));
-				memset(cmdalloc,0,sizeof(struct cmd_alloc));
-			}
-			break;
-		case 'f':
-			cmd[CMD_FREE] = 1;
-			if(cmdfree == NULL) {
-				cmdfree = malloc(sizeof(struct cmd_free));
-				memset(cmdfree,0,sizeof(struct cmd_free));
-			}
-			break;
-		case 'w':
-			if(cmdalloc == NULL ) {
-				cmdalloc = malloc(sizeof(struct cmd_alloc));
-				memset(cmdalloc,0,sizeof(struct cmd_alloc));
-			}
-			cmdalloc->wq = atoi(optarg);
-			break;
-		case 'r':
-			if(cmdalloc == NULL ) {
-				cmdalloc = malloc(sizeof(struct cmd_alloc));
-				memset(cmdalloc,0,sizeof(struct cmd_alloc));
-			}
-			cmdalloc->rq = atoi(optarg);
-			break;
-		case 'c':
-			if(cmdalloc == NULL ) {
-				cmdalloc = malloc(sizeof(struct cmd_alloc));
-				memset(cmdalloc,0,sizeof(struct cmd_alloc));
-			}
-			cmdalloc->cq = atoi(optarg);
-			break;
-		case 'i':
-			if(cmdalloc == NULL ) {
-				cmdalloc = malloc(sizeof(struct cmd_alloc));
-				memset(cmdalloc,0,sizeof(struct cmd_alloc));
-			}
-			cmdalloc->intr = atoi(optarg);
-			break;
 		case 'd':
-			if(cmd[CMD_ALLOC]) {
-				if(cmdalloc == NULL ) {
-					cmdalloc = malloc(sizeof(struct cmd_alloc));
-					memset(cmdalloc,0,sizeof(struct cmd_alloc));
-				}
-				strcpy(cmdalloc->ifname,optarg);
-				break;
-			} else if(cmd[CMD_FREE]) {
-				if(cmdfree == NULL) {
-					cmdfree = malloc(sizeof(struct cmd_free));
-					memset(cmdfree,0,sizeof(struct cmd_free));
-				}
-				strcpy(cmdfree->ifname,optarg);
-				break;
-			}
-			if(cmdalloc == NULL ) {
-				cmdalloc = malloc(sizeof(struct cmd_alloc));
-				memset(cmdalloc,0,sizeof(struct cmd_alloc));
-			}
-			strcpy(cmdalloc->ifname,optarg);
-			if(cmdfree == NULL) {
-				cmdfree = malloc(sizeof(struct cmd_free));
-				memset(cmdfree,0,sizeof(struct cmd_free));
-			}
-			strcpy(cmdfree->ifname,optarg);
+			strcpy(d_ipaddr,optarg);
+			break;
+		case 'p':
+			d_ipport = atoi(optarg);
+			break;
+		case 's':
+			server =1;
 			break;
 		case -1:
 			break;
@@ -167,13 +99,13 @@ int main(int argc, char **argv)
 			break;
 		}
 	}while(next_arg!=-1);
-*/
+
 	/* source address */
 	memset(&s_nladdr, 0 ,sizeof(s_nladdr));
 	s_nladdr.nl_family = AF_NETLINK ;
 	s_nladdr.nl_pad = 0;
 	s_nladdr.nl_pid = getpid();
-	bind(fd, (struct sockaddr*)&s_nladdr, sizeof(s_nladdr));
+	bind(netlink_fd, (struct sockaddr*)&s_nladdr, sizeof(s_nladdr));
 
 	/* destination address */
 	memset(&d_nladdr, 0, sizeof(d_nladdr));
@@ -181,25 +113,10 @@ int main(int argc, char **argv)
 	d_nladdr.nl_pad = 0;
 	d_nladdr.nl_pid = 0; /* destined to kernel */
 
-	nlsend_msg(fd, &d_nladdr, data, strlen(data));
-	read_and_print(fd,&d_nladdr);
+	//nlsend_msg(fd, &d_nladdr, data, strlen(data));
+	//read_and_print(fd,&d_nladdr);
 
-
-
-
-
-
-//	/*case 0 */
-//	data = case0();
-//	nlsend_msg(fd, &d_nladdr, data, CASE_DATA_LENGTH(data));
-//	free(data);
-//
-//	/*case 1 */
-//	data = case1();
-//	nlsend_msg(fd, &d_nladdr, data, CASE_DATA_LENGTH(data));
-//	free(data);
-
-	close(fd);
+	close(netlink_fd);
 	return (EXIT_SUCCESS);
 
 }

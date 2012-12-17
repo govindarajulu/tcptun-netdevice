@@ -4,3 +4,5 @@ tcptunl-objs := tcptun.o tcp_netlink.o main.o
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=`pwd` modules
 	gcc tcptunuserland.c -o tcptunuserland
+userland:
+	gcc tcptunuserland.c -o tcptunuserland
