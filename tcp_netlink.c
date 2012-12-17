@@ -42,7 +42,7 @@ void tcp_netlink_msg(struct sk_buff *recv_skb)
 	skb_pull(recv_skb, NLMSG_LENGTH(0));
 	recv_skb->dev = tcptun_netdev;
 	recv_skb->csum = CHECKSUM_COMPLETE;
-	printk(KERN_INFO"received %s---users=%d\n",recv_skb->data,recv_skb->users);
+	printk(KERN_INFO"received %d bytes\n",recv_skb->len);
 	recv_skb->protocol = eth_type_trans(recv_skb, tcptun_netdev);
 	atomic_inc(&recv_skb->users);
 	netif_rx(recv_skb);

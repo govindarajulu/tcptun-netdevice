@@ -114,7 +114,6 @@ void *read_from_tcpsock(void * nothing)
 			perror("readn");
 			pthread_exit(NULL);
 		}
-		printf("received %s",data);
 		res = nlsend_msg(netlink_fd, &d_nladdr, data, len);
 		if(res < 0 ) {
 			perror("write in netlink_fd in read_from_tcpsock");
@@ -143,7 +142,7 @@ void *read_from_netlink(void *nothing)
 	while(1) {
 	len = recvmsg(netlink_fd, &msg_hdr, 0);
 	len = len - NLMSG_LENGTH(0);
-	printf("received from kernel = %s", NLMSG_DATA(nl_hdr));
+	printf("received from kernel = %d bytes", len);
 	len = htons(len);
 	res = write(tcpsend_fd, &len, sizeof(len));
 	if(res < 0) {
