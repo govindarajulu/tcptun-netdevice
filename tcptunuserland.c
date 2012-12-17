@@ -166,17 +166,17 @@ int main(int argc, char **argv)
 
 	bzero(&s_sockaddr, sizeof(s_sockaddr));
 	bzero(&c_sockaddr, sizeof(c_sockaddr));
-	s_sockaddr.sin_family = AF_INET;
-	s_sockaddr.sin_addr.s_addr = INADDR_ANY;
-	s_sockaddr.sin_port = htons(d_ipport);
-	res = bind(tcpsock_fd, (struct sockaddr *) &s_sockaddr, sizeof(s_sockaddr));
-	if (res < 0) {
-		printf("error in bind\n");
-		perror("bind s_sockaddr");
-		exit(EXIT_FAILURE);
-	}
-	if(server) {
 
+	if(server) {
+		s_sockaddr.sin_family = AF_INET;
+		s_sockaddr.sin_addr.s_addr = INADDR_ANY;
+		s_sockaddr.sin_port = htons(d_ipport);
+		res = bind(tcpsock_fd, (struct sockaddr *) &s_sockaddr, sizeof(s_sockaddr));
+		if (res < 0) {
+			printf("error in bind\n");
+			perror("bind s_sockaddr");
+			exit(EXIT_FAILURE);
+		}
 		res = listen(tcpsock_fd, 1024);
 		if(res < 0) {
 			perror("listen");
