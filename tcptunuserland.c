@@ -36,7 +36,7 @@ void read_and_print(int fd, struct sockaddr_nl *sock);
 int nlsend_msg(int fd, struct sockaddr_nl *d_nladdr, void *data, int len);
 void *read_from_tcpsock(void * nothing);
 void *read_from_netlink(void *nothing);
-
+int writen(int fd, char *data, u_int16_t len);
 
 void read_and_print(int fd, struct sockaddr_nl *sock)
 {
