@@ -187,6 +187,8 @@ int main(int argc, char **argv)
 
 	//nlsend_msg(fd, &d_nladdr, data, strlen(data));
 	//read_and_print(fd,&d_nladdr);
+	if(server)
+		close(tcpsend_fd);
 	close(tcpsock_fd);
 	close(netlink_fd);
 	return (EXIT_SUCCESS);
