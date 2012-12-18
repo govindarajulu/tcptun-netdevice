@@ -144,7 +144,7 @@ void *read_from_netlink(void *nothing)
 	len = len - NLMSG_LENGTH(0);
 	printf("received from kernel = %d bytes", len);
 	len = htons(len);
-	res = write(tcpsend_fd, &len, sizeof(len));
+	res = write(tcpsend_fd, &len, sizeof(u_int16_t));
 	if(res < 0) {
 		perror("write in read_from_nl");
 		pthread_exit(NULL);
