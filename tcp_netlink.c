@@ -55,10 +55,11 @@ void tcp_netlink_msg(struct sk_buff *recv_skb)
 	recv_skb->dev = tcptun_netdev;
 	recv_skb->csum = CHECKSUM_COMPLETE;
 	printk(KERN_INFO"received %d bytes\n",recv_skb->len);
+	hexprint(recv_skb->data, recv_skb->len);
 	recv_skb->protocol = eth_type_trans(recv_skb, tcptun_netdev);
 	//atomic_inc(&recv_skb->users);
 	//netif_rx(recv_skb);
-	hexprint(recv_skb->data, recv_skb->len);
+
 	tcptun_netdev->last_rx = jiffies;
 }
 
