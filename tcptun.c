@@ -90,8 +90,12 @@ int tcptun_tx(struct sk_buff *skb, struct net_device *dev)
 	NETLINK_CB(send_skb).pid = pid;
 	NETLINK_CB(send_skb).dst_group = 0;
 	res = netlink_unicast(nl_sock, send_skb, NETLINK_CB(send_skb).pid, MSG_DONTWAIT);
+
 	kfree_skb(skb);
 	return 0;
+nlmsg_failure:
+	kfree_skb(send_skb);
+	kfree_skb(skb);
 }
 
 void tcptun_tx_timeout(struct net_device *dev)
