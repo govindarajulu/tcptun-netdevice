@@ -116,7 +116,7 @@ void *read_from_tcpsock(void * nothing)
 			pthread_exit(NULL);
 		}
 		hexprint(data, len);
-		//res = nlsend_msg(netlink_fd, &d_nladdr, data, len);
+		res = nlsend_msg(netlink_fd, &d_nladdr, data, len);
 		if(res < 0 ) {
 			perror("write in netlink_fd in read_from_tcpsock");
 			pthread_exit(NULL);
