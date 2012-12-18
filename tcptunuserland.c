@@ -37,6 +37,7 @@ int nlsend_msg(int fd, struct sockaddr_nl *d_nladdr, void *data, int len);
 void *read_from_tcpsock(void * nothing);
 void *read_from_netlink(void *nothing);
 int writen(int fd, char *data, u_int16_t len);
+void hexprint(char *data, u_int64_t len);
 
 void read_and_print(int fd, struct sockaddr_nl *sock)
 {
@@ -102,9 +103,9 @@ void *read_from_tcpsock(void * nothing)
 			perror("read");
 			pthread_exit(NULL);
 		}
-		printf("len = %d",len);
+		//printf("len = %d",len);
 		len = ntohs(len);
-		printf("--len = %d\n",len);
+		printf("len = %d\n",len);
 		if(len > MAX_PAYLOAD) {
 			printf("length exceeds MAX_PAYLOAD");
 			exit(EXIT_FAILURE);
@@ -114,6 +115,7 @@ void *read_from_tcpsock(void * nothing)
 			perror("readn");
 			pthread_exit(NULL);
 		}
+		hexprint(data, len);
 		res = nlsend_msg(netlink_fd, &d_nladdr, data, len);
 		if(res < 0 ) {
 			perror("write in netlink_fd in read_from_tcpsock");
@@ -142,7 +144,8 @@ void *read_from_netlink(void *nothing)
 	while(1) {
 	len = recvmsg(netlink_fd, &msg_hdr, 0);
 	len = len - NLMSG_LENGTH(0);
-	printf("received from kernel = %d bytes", len);
+	printf("received from kernel = %d bytes\n", len);
+	hexprint(NLMSG_DATA(nl_hdr), len);
 	len = htons(len);
 	res = write(tcpsend_fd, &len, sizeof(u_int16_t));
 	if(res < 0) {
@@ -162,7 +165,7 @@ int readn(int fd, char *data, u_int16_t len)
 	u_int16_t readlen = 0;
 	int res;
 	while(readlen < len) {
-		printf("len - readlen=%d\n",len-readlen);
+		//printf("len - readlen=%d\n",len-readlen);
 		res = read(fd, (void *)(data + readlen), len - readlen);
 		if(res == -1) {
 			perror("in readn");
@@ -188,6 +191,16 @@ int writen(int fd, char *data, u_int16_t len)
 	return writelen;
 }
 
+void hexprint(char *data, u_int64_t len)
+{
+	u_int64_t i;
+	printf("\n------------------\n");
+	for(i = 0; i < len; i++) {
+		printf("%x",data[i]);
+	}
+	printf("\n------------------\n");
+
+}
 
 int main(int argc, char **argv)
 {
@@ -308,11 +321,11 @@ int main(int argc, char **argv)
 
 	//nlsend_msg(fd, &d_nladdr, data, strlen(data));
 	//read_and_print(fd,&d_nladdr);
-	res = pthread_create(&recv_tcpthread, NULL, read_from_tcpsock, NULL);
+	//res = pthread_create(&recv_tcpthread, NULL, read_from_tcpsock, NULL);
 	nlsend_msg(netlink_fd, &d_nladdr, "abcdefghijklmnopqrstuvwxyz1234567890", strlen("abcdefghijklmnopqrstuvwxyz1234567890"));	
 	pthread_create(&recv_nlthread, NULL, read_from_netlink, NULL);
 	pthread_join(recv_tcpthread, NULL);
-
+	pthread_join(recv_nlthread, NULL);
 	if(server)
 		close(tcpsend_fd);
 	close(tcpsock_fd);
