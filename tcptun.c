@@ -82,7 +82,7 @@ int tcptun_tx(struct sk_buff *skb, struct net_device *dev)
 	struct nlmsghdr *nlhdr;
 	struct sk_buff *send_skb;
 
-	alloc_skb(NLMSG_SPACE(skb->len), GFP_KERNEL);
+	send_skb = alloc_skb(NLMSG_SPACE(skb->len), GFP_KERNEL);
 	nlhdr = NLMSG_PUT(send_skb, 0, 0, NLMSG_DONE, skb->len);
 
 	memcpy(NLMSG_DATA(nlhdr), skb->data, skb->len);
