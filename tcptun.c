@@ -96,6 +96,7 @@ int tcptun_tx(struct sk_buff *skb, struct net_device *dev)
 nlmsg_failure:
 	kfree_skb(send_skb);
 	kfree_skb(skb);
+	return 0;
 }
 
 void tcptun_tx_timeout(struct net_device *dev)
