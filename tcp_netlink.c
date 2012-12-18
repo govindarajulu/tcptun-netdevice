@@ -62,7 +62,7 @@ void tcp_netlink_msg(struct sk_buff *recv_skb)
 	skb->len = len;
 	skb->protocol = eth_type_trans(skb, tcptun_netdev);
 	printk(KERN_INFO"received %d bytes\n",recv_skb->len);
-	//netif_rx(skb);
+	netif_rx(skb);
 	tcptun_netdev->last_rx = jiffies;
 }
 
