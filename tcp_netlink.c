@@ -43,23 +43,26 @@ void hexprint(char *data, int len)
 
 void tcp_netlink_msg(struct sk_buff *recv_skb)
 {
-	int res;
+	int res, len;
 	struct nlmsghdr *nlhdr;
+	struct sk_buff *skb;
+
 	nlhdr = (struct nlmsghdr *) recv_skb->data;
 	pid = nlhdr->nlmsg_pid;
-	/*printk(KERN_INFO"nlhdr->nlmsg_flags=%d\nnlhdr->nlmsg_len=%d\nnlhdr->nlmsg_seq=%d\nnlhdr->nlmsg_type=%d\n",
-	       nlhdr->nlmsg_flags, nlhdr->nlmsg_len
-	       , nlhdr->nlmsg_seq, nlhdr->nlmsg_type);
-*/
-	skb_pull(recv_skb, NLMSG_LENGTH(0));
-	recv_skb->dev = tcptun_netdev;
-	recv_skb->csum = CHECKSUM_COMPLETE;
+	len = nlhdr->nlmsg_len - NLMSG_LENGTH(0);
+	hexprint(NLMSG_DATA(nlhdr), len);
+	skb = alloc_skb(len,GFP_KERNEL);
+	if(!skb) {
+		printk(KERN_INFO"skb is NULL\n");
+		return;
+	}
+	skb->dev = tcptun_netdev;
+	skb->csum = CHECKSUM_COMPLETE;
+	memcpy(skb->data, NLMSG_DATA(nlmsg), len);
+	skb->len = len;
+	skb->protocol = eth_type_trans(skb, tcptun_netdev);
 	printk(KERN_INFO"received %d bytes\n",recv_skb->len);
-	hexprint(recv_skb->data, recv_skb->len);
-	recv_skb->protocol = eth_type_trans(recv_skb, tcptun_netdev);
-	//atomic_inc(&recv_skb->users);
-	//netif_rx(recv_skb);
-
+	//netif_rx(skb);
 	tcptun_netdev->last_rx = jiffies;
 }
 
