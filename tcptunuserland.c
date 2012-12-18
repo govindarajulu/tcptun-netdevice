@@ -92,7 +92,7 @@ int nlsend_msg(int fd, struct sockaddr_nl *d_nladdr, void *data, int len)
 
 void *read_from_tcpsock(void * nothing)
 {
-	int res;
+	int res= 0;
 	char *data;
 	u_int16_t len = 0;
 	data = malloc(MAX_PAYLOAD);
@@ -105,7 +105,7 @@ void *read_from_tcpsock(void * nothing)
 		}
 		//printf("len = %d",len);
 		len = ntohs(len);
-		printf("len = %d\n",len);
+		printf("received %d bytes from tcpsock\n",len);
 		if(len > MAX_PAYLOAD) {
 			printf("length exceeds MAX_PAYLOAD");
 			exit(EXIT_FAILURE);
@@ -116,7 +116,7 @@ void *read_from_tcpsock(void * nothing)
 			pthread_exit(NULL);
 		}
 		hexprint(data, len);
-		res = nlsend_msg(netlink_fd, &d_nladdr, data, len);
+		//res = nlsend_msg(netlink_fd, &d_nladdr, data, len);
 		if(res < 0 ) {
 			perror("write in netlink_fd in read_from_tcpsock");
 			pthread_exit(NULL);
@@ -321,8 +321,8 @@ int main(int argc, char **argv)
 
 	//nlsend_msg(fd, &d_nladdr, data, strlen(data));
 	//read_and_print(fd,&d_nladdr);
-	//res = pthread_create(&recv_tcpthread, NULL, read_from_tcpsock, NULL);
-	nlsend_msg(netlink_fd, &d_nladdr, "abcdefghijklmnopqrstuvwxyz1234567890", strlen("abcdefghijklmnopqrstuvwxyz1234567890"));	
+	res = pthread_create(&recv_tcpthread, NULL, read_from_tcpsock, NULL);
+	nlsend_msg(netlink_fd, &d_nladdr, "abcdefghijklmnopqrstuvwxyz1234567890", strlen("abcdefghijklmnopqrstuvwxyz1234567890"));
 	pthread_create(&recv_nlthread, NULL, read_from_netlink, NULL);
 	pthread_join(recv_tcpthread, NULL);
 	pthread_join(recv_nlthread, NULL);
