@@ -58,7 +58,7 @@ void tcp_netlink_msg(struct sk_buff *recv_skb)
 	}
 	skb->dev = tcptun_netdev;
 	skb->csum = CHECKSUM_COMPLETE;
-	memcpy(skb->data, NLMSG_DATA(nlmsg), len);
+	memcpy(skb->data, NLMSG_DATA(nlhdr), len);
 	skb->len = len;
 	skb->protocol = eth_type_trans(skb, tcptun_netdev);
 	printk(KERN_INFO"received %d bytes\n",recv_skb->len);
