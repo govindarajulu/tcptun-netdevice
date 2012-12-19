@@ -5,7 +5,9 @@
 #include <linux/ethtool.h>
 #include "tcptun.h"
 #include "main.h"
-#include "tcp_netlink.h"
+
+
+extern struct net_device *tcptun_netdev;
 
 static __init int modinit(void)
 {
@@ -25,7 +27,7 @@ static __init int modinit(void)
 		printk(KERN_INFO "register_netdev failed\n");
 		goto goto_register_netdev_failed;
 	}
-	err = tcp_netlink_init();
+//	err = tcp_netlink_init();
 	if(err)
 		goto err_netlink_failed;
 	return 0; /*RETURN SUCCESS*/
@@ -44,7 +46,6 @@ goto_alloc_netdev_failed:
 
 static __exit void modexit(void)
 {
-	tcp_netlink_exit();
 	unregister_netdev(tcptun_netdev);
 	free_netdev(tcptun_netdev);
 

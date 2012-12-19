@@ -4,8 +4,8 @@ CONFIG -= qt
 
 SOURCES += main.c \
     tcptun.c \
-    tcp_netlink.c \
-    tcptunuserland.c
+    tcptunuserland.c \
+    char.c
 
 
 QMAKE_CXXFLAGS = -I/home/hydrogen/linux/linux-stable/include
@@ -17,4 +17,4 @@ OTHER_FILES += \
 HEADERS += \
     tcptun.h \
     main.h \
-    tcp_netlink.h
+    char.h

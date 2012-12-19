@@ -6,6 +6,7 @@
 
 #define TCPTUN_IFNAME "tcptunl%d"
 
+
 struct tcptun_priv {
 	int status;
 	struct semaphore lock;

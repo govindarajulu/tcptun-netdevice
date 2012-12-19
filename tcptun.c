@@ -79,25 +79,6 @@ int tcptun_stop(struct net_device *dev)
 int tcptun_tx(struct sk_buff *skb, struct net_device *dev)
 {
 	int res;
-	struct nlmsghdr *nlhdr;
-	struct sk_buff *send_skb;
-
-	send_skb = alloc_skb(NLMSG_SPACE(skb->len), GFP_KERNEL);
-	nlhdr = NLMSG_PUT(send_skb, 0, 0, NLMSG_DONE, skb->len);
-
-	memcpy(NLMSG_DATA(nlhdr), skb->data, skb->len);
-
-	NETLINK_CB(send_skb).pid = pid;
-	NETLINK_CB(send_skb).dst_group = 1;
-	res = netlink_unicast(nl_sock, send_skb, NETLINK_CB(send_skb).pid, MSG_DONTWAIT);
-	if (res < 0 ) {
-		printk(KERN_INFO"netlink_unicast failed\n");
-	}
-	kfree_skb(skb);
-	return 0;
-nlmsg_failure:
-	kfree_skb(send_skb);
-	kfree_skb(skb);
 	return 0;
 }
 
