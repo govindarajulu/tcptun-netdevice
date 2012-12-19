@@ -9,11 +9,20 @@
 #include <linux/cdev.h>
 #include <linux/skbuff.h>
 #include <linux/etherdevice.h>
+#include <linux/spinlock.h>
+#include <linux/wait.h>
 //#include <asm-generic/uaccess.h>
 
+#include "tcptun.h"
 #include "char.h"
 
 extern struct net_device *tcptun_netdev;
+extern struct sk_buff *que[TCPTUN_QLEN];
+extern int fetch;
+extern int feed;
+extern spinlock_t qlock;
+extern wait_queue_head_t waitq;
+
 dev_t chrdev;
 struct cdev *mycdev;
 const struct file_operations fop = {
@@ -37,14 +46,29 @@ int fops_myrelease(struct inode *myinode, struct file *myfile)
 ssize_t fops_myread(struct file *filep, char __user *buf,
 		    size_t count, loff_t *f_pos)
 {
-	copy_to_user(buf, "linux", 6);
-	*f_pos = *f_pos + 6;
-	return 6;
+	struct sk_buff *skb;
+	int res;
+	spin_lock(&qlock);
+	while(fetch == feed) { /* TRUE = queue empty */
+		spin_unlock(&qlock);
+		res = wait_event_interruptible(waitq, fetch);
+		spin_lock(&qlock);
+	}
+	skb = que[fetch];
+	copy_to_user(buf, skb->data, skb->len);
+	*f_pos = *f_pos + skb->len;
+	fetch = inc_fetchfeed(fetch);
+	spin_unlock(&qlock);
+
+	//copy_to_user(buf, "linux", 6);
+
+	return skb->len;
 }
 
 ssize_t fops_mywrite(struct file *filep, char __user *buf,
 		     size_t count, loff_t *f_pos)
 {
+	struct sk_buff *skb;
 	char *buffer;
 	buffer = kmalloc(count+1, GFP_KERNEL);
 	copy_from_user(buffer, buf, count);
@@ -54,7 +78,6 @@ ssize_t fops_mywrite(struct file *filep, char __user *buf,
 	kfree(buffer);
 
 
-	struct sk_buff *skb;
 	skb = alloc_skb(count, GFP_KERNEL);
 	if(!skb) {
 		printk(KERN_INFO"skb alloc failed\n");

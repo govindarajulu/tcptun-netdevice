@@ -3,11 +3,19 @@
 #include <linux/netlink.h>
 #include <linux/skbuff.h>
 #include <linux/ethtool.h>
+#include <linux/spinlock.h>
+#include <linux/wait.h>
 #include "tcptun.h"
 
 
 extern int pid;
 extern struct sock *nl_sock;
+struct sk_buff *que[TCPTUN_QLEN];
+int fetch = 0;
+int feed = 0;
+spinlock_t qlock;
+wait_queue_head_t waitq;
+
 /* tcptun_netdev: *tcptun_netdev is dynamically
  *by calling alloc_netdev
  */
@@ -20,6 +28,15 @@ struct net_device_ops tcptun_netdev_ops;
 /*
  *ethtool_ops for tcptunl driver
  */
+
+int inc_fetchfeed(int i)
+{
+	i++;
+	if(i>=TCPTUN_QLEN)
+		i = 0;
+	return i;
+
+}
 
 struct ethtool_ops tun_ethtool_ops = {
 	.get_drvinfo = tcptun_get_drvinfo
@@ -40,7 +57,7 @@ void tcptun_setup(struct net_device *dev)
 {
 	ether_setup(dev);
 	memset(&tcptun_netdev_ops, 0, sizeof(struct net_device_ops));
-	dev->hard_header_len = ETH_HLEN + NLMSG_LENGTH(0);
+	dev->hard_header_len = ETH_HLEN;
 	tcptun_netdev_ops.ndo_open = tcptun_open;
 	tcptun_netdev_ops.ndo_stop = tcptun_stop;
 	tcptun_netdev_ops.ndo_start_xmit = tcptun_tx;
@@ -104,9 +121,10 @@ int tcptun_init(void)
 		printk(KERN_INFO "register_netdev failed\n");
 		goto goto_register_netdev_failed;
 	}
-	//	err = tcp_netlink_init();
 	if(err)
 		goto err_netlink_failed;
+	spin_lock_init(&qlock);
+	init_waitqueue_head(&waitq);
 	return 0; /*RETURN SUCCESS*/
 
 err_netlink_failed:
