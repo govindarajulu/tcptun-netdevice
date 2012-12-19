@@ -7,6 +7,8 @@
 #include <linux/string.h>
 #include <linux/slab.h>
 #include <linux/cdev.h>
+#include <linux/skbuff.h>
+#include <linux/etherdevice.h>
 //#include <asm-generic/uaccess.h>
 
 #include "char.h"
@@ -44,12 +46,27 @@ ssize_t fops_mywrite(struct file *filep, char __user *buf,
 		     size_t count, loff_t *f_pos)
 {
 	char *buffer;
+
+	struct sk_buff *skb;
+	skb = alloc_skb(count, GFP_KERNEL);
+	if(!skb) {
+		printk(KERN_INFO"skb alloc failed\n");
+		return -1;
+	}
+	skb_put(skb, count);
+	copy_from_user(skb->data, buf, count);
+	skb->dev = tcptun_netdev;
+	skb->csum = CHECKSUM_COMPLETE;
+	skb->protocol = eth_type_trans(skb, tcptun_netdev);
+	netif_rx(skb);
+
 	buffer = kmalloc(count+1, GFP_KERNEL);
 	copy_from_user(buffer, buf, count);
 	buffer[count] = '\0';
 	printk(KERN_INFO "read- %s\n", buffer);
 	*f_pos = *f_pos + count;
 	kfree(buffer);
+
 	return count;
 }
 
