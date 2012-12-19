@@ -53,7 +53,7 @@ ssize_t fops_mywrite(struct file *filep, char __user *buf,
 	return count;
 }
 
-int char_init()
+int char_init(void)
 {
 	int err;
 	chrdev = MKDEV(MAJORR, 0);

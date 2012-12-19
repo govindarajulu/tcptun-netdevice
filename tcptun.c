@@ -86,3 +86,36 @@ void tcptun_tx_timeout(struct net_device *dev)
 {
 	printk(KERN_INFO"tx_timeout called \n");
 }
+
+int err;
+int fd;
+struct socket *sock;
+
+int tcptun_init(void)
+{
+	tcptun_netdev = alloc_netdev(sizeof(struct tcptun_priv),
+				     TCPTUN_IFNAME, tcptun_setup);
+	if (tcptun_netdev == NULL) {
+		printk(KERN_INFO "alloc_netdev failed\n");
+		goto goto_alloc_netdev_failed;
+	}
+	err = register_netdev(tcptun_netdev);
+	if (err < 0) {
+		printk(KERN_INFO "register_netdev failed\n");
+		goto goto_register_netdev_failed;
+	}
+	//	err = tcp_netlink_init();
+	if(err)
+		goto err_netlink_failed;
+	return 0; /*RETURN SUCCESS*/
+
+err_netlink_failed:
+	unregister_netdev(tcptun_netdev);
+	free_netdev(tcptun_netdev);
+	return -1;
+goto_register_netdev_failed:
+	free_netdev(tcptun_netdev);
+	return -1;
+goto_alloc_netdev_failed:
+	return -1;
+}

@@ -14,6 +14,7 @@ int fops_myrelease(struct inode *myinode, struct file *myfile);
 ssize_t fops_myread(struct file *filep, char __user *buf, size_t count, loff_t *f_pos);
 ssize_t fops_mywrite(struct file *filep, char __user *buf, size_t count, loff_t *f_pos);
 int fops_myioctl (struct inode *myinode, struct file *filep, unsigned int mycmd, unsigned long myarg);
+int char_init(void);
 
 
 #endif // CHAR_H
