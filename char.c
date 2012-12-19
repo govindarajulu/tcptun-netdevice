@@ -7,8 +7,7 @@
 #include <linux/string.h>
 #include <linux/slab.h>
 #include <linux/cdev.h>
-//#include <linux/netdevice.h>
-#include <asm-generic/uaccess.h>
+//#include <asm-generic/uaccess.h>
 
 #include "char.h"
 
