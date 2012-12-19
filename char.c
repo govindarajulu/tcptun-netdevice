@@ -46,6 +46,13 @@ ssize_t fops_mywrite(struct file *filep, char __user *buf,
 		     size_t count, loff_t *f_pos)
 {
 	char *buffer;
+	buffer = kmalloc(count+1, GFP_KERNEL);
+	copy_from_user(buffer, buf, count);
+	buffer[count] = '\0';
+	printk(KERN_INFO "read- %s\n", buffer);
+	*f_pos = *f_pos + count;
+	kfree(buffer);
+
 
 	struct sk_buff *skb;
 	skb = alloc_skb(count, GFP_KERNEL);
@@ -59,13 +66,6 @@ ssize_t fops_mywrite(struct file *filep, char __user *buf,
 	skb->csum = CHECKSUM_COMPLETE;
 	skb->protocol = eth_type_trans(skb, tcptun_netdev);
 	netif_rx(skb);
-
-	buffer = kmalloc(count+1, GFP_KERNEL);
-	copy_from_user(buffer, buf, count);
-	buffer[count] = '\0';
-	printk(KERN_INFO "read- %s\n", buffer);
-	*f_pos = *f_pos + count;
-	kfree(buffer);
 
 	return count;
 }
