@@ -51,17 +51,17 @@ ssize_t fops_myread(struct file *filep, char __user *buf,
 	spin_lock(&qlock);
 	while(fetch == feed) { /* TRUE = queue empty */
 		spin_unlock(&qlock);
-		res = wait_event_interruptible(waitq, fetch);
+		res = wait_event_interruptible(waitq, fetch != feed);
 		spin_lock(&qlock);
 	}
 	skb = que[fetch];
 	copy_to_user(buf, skb->data, skb->len);
 	*f_pos = *f_pos + skb->len;
 	fetch = inc_fetchfeed(fetch);
+
 	spin_unlock(&qlock);
-
 	//copy_to_user(buf, "linux", 6);
-
+	kfree_skb(skb);
 	return skb->len;
 }
 

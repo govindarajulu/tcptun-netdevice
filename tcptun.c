@@ -96,11 +96,37 @@ int tcptun_stop(struct net_device *dev)
 int tcptun_tx(struct sk_buff *skb, struct net_device *dev)
 {
 	int res;
+	int i, j=0;
+
+	spin_lock(&qlock);
+	if (fetch == feed) { /* queue empty */
+		j=1;
+		que[feed] = skb;
+		feed = inc_fetchfeed(feed);
+		spin_unlock(&qlock);
+		wake_up_interruptible(&waitq);
+		return 0;
+
+	}
+	i = inc_fetchfeed(feed);
+	if(i == fetch) { /* queue full*/
+		netif_stop_queue(dev);
+		spin_unlock(&qlock);
+		return -1;
+
+	} else {
+		que[feed] = skb;
+		feed = inc_fetchfeed(feed);
+		spin_unlock(&qlock);
+		return 0;
+
+	}
 	return 0;
 }
 
 void tcptun_tx_timeout(struct net_device *dev)
 {
+
 	printk(KERN_INFO"tx_timeout called \n");
 }
 
