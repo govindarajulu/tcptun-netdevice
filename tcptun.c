@@ -96,11 +96,12 @@ int tcptun_stop(struct net_device *dev)
 int tcptun_tx(struct sk_buff *skb, struct net_device *dev)
 {
 	int res;
-	int i, j=0;
+	int i;
 
 	spin_lock(&qlock);
 	if (fetch == feed) { /* queue empty */
-		j=1;
+		printk(KERN_INFO"queue is empty\n");
+		printk(KERN_INFO"feed = %d, fetch = %d\n", feed, fetch);
 		que[feed] = skb;
 		feed = inc_fetchfeed(feed);
 		spin_unlock(&qlock);
@@ -110,11 +111,15 @@ int tcptun_tx(struct sk_buff *skb, struct net_device *dev)
 	}
 	i = inc_fetchfeed(feed);
 	if(i == fetch) { /* queue full*/
+		printk(KERN_INFO"queue is full\n");
+		printk(KERN_INFO"feed = %d, fetch = %d\n", feed, fetch);
 		netif_stop_queue(dev);
 		spin_unlock(&qlock);
 		return -1;
 
 	} else {
+		printk(KERN_INFO"queue is not full\n");
+		printk(KERN_INFO"feed = %d, fetch = %d\n", feed, fetch);
 		que[feed] = skb;
 		feed = inc_fetchfeed(feed);
 		spin_unlock(&qlock);
