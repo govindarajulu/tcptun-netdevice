@@ -3,12 +3,15 @@
 #include <linux/netdevice.h>
 #include <linux/socket.h>
 #include <linux/ethtool.h>
+#include <linux/cdev.h>
 #include "tcptun.h"
 #include "main.h"
 #include "char.h"
 
 
 extern struct net_device *tcptun_netdev;
+extern dev_t chrdev;
+extern struct cdev *mycdev;
 
 static __init int modinit(void)
 {
@@ -28,6 +31,8 @@ static __init int modinit(void)
 
 static __exit void modexit(void)
 {
+	cdev_del(mycdev);
+	unregister_chrdev_region(chrdev, COUNT);
 	unregister_netdev(tcptun_netdev);
 	free_netdev(tcptun_netdev);
 

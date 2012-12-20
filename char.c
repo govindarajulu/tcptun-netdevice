@@ -55,7 +55,10 @@ ssize_t fops_myread(struct file *filep, char __user *buf,
 		spin_lock(&qlock);
 	}
 	skb = que[fetch];
-	copy_to_user(buf, skb->data, skb->len);
+	if(count < skb->len) {
+		printk("no enough space in userspace\n");
+	}
+	copy_to_user(buf, skb->data, count);
 	*f_pos = *f_pos + skb->len;
 	fetch = inc_fetchfeed(fetch);
 
