@@ -183,7 +183,7 @@ int main(int argc, char **argv)
 	}while(next_arg != -1);
 
 	chrdev_fd = open(file_name, O_RDWR);
-	if(chrdev_fd = -1) {
+	if(chrdev_fd == -1) {
 		perror("open chrdev");
 		exit(EXIT_FAILURE);
 	}
