@@ -14,91 +14,39 @@
 #include <pthread.h>
 #include <netdb.h>
 #include <arpa/inet.h>
-#define USERSPACE_PROGRAM
-#include "tcp_netlink.h"
-#define NETLINK_NITRO 17
-
-
-struct sockaddr_nl s_nladdr, d_nladdr;
+#include <fcntl.h>
+#define MAX_PAYLOAD 5000
 struct sockaddr_in s_sockaddr, c_sockaddr;
 socklen_t socklen;
-pthread_t recv_tcpthread, recv_nlthread;
+pthread_t recv_tcpthread, recv_chrdevthread;
 
 int res;
 int d_ipport = 2551;
 char d_ipaddr[16] = "127.0.0.1";
+char file_name[32] = "tcptunl0";
 int server = 0;
 
-int netlink_fd, tcpsock_fd, tcpsend_fd;
+int chrdev_fd, tcpsock_fd, tcpsend_fd;
 
 int readn(int fd, char *data, u_int16_t len);
-void read_and_print(int fd, struct sockaddr_nl *sock);
-int nlsend_msg(int fd, struct sockaddr_nl *d_nladdr, void *data, int len);
 void *read_from_tcpsock(void * nothing);
-void *read_from_netlink(void *nothing);
+void *read_from_chrdev(void *nothing);
 int writen(int fd, char *data, u_int16_t len);
 void hexprint(char *data, u_int64_t len);
-
-void read_and_print(int fd, struct sockaddr_nl *sock)
-{
-
-	struct nlmsghdr *nl_hdr;
-	struct msghdr msg_hdr;
-	struct iovec iov;
-
-	nl_hdr = malloc(NLMSG_SPACE(MAX_PAYLOAD));
-	memset(nl_hdr, 0, NLMSG_SPACE(MAX_PAYLOAD));
-	iov.iov_base = nl_hdr;
-	iov.iov_len = NLMSG_SPACE(MAX_PAYLOAD);
-
-	msg_hdr.msg_name = sock;
-	msg_hdr.msg_namelen = sizeof(struct sockaddr_nl);
-	msg_hdr.msg_iov = &iov;
-	msg_hdr.msg_iovlen = 1;
-	recvmsg(fd, &msg_hdr, 0);
-	printf("received from kernel = %s", NLMSG_DATA(nl_hdr));
-}
-
-int nlsend_msg(int fd, struct sockaddr_nl *d_nladdr, void *data, int len)
-{
-	struct msghdr msg ;
-	struct nlmsghdr *nlh = NULL ;
-	struct iovec iov;
-
-	/* Fill the netlink message header */
-	nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(len));
-	memset(nlh , 0, NLMSG_SPACE(len));
-	printf("%d-%d\n",len,NLMSG_SPACE(len));
-	memcpy(NLMSG_DATA(nlh),data,len);
-	nlh->nlmsg_len = NLMSG_SPACE(len);
-	nlh->nlmsg_pid = getpid();
-	nlh->nlmsg_flags = 1;
-	nlh->nlmsg_type = 0;
-
-	/*iov structure */
-
-	iov.iov_base = (void *)nlh;
-	iov.iov_len = NLMSG_SPACE(len);
-
-	/* msg */
-	memset(&msg,0,sizeof(msg));
-	msg.msg_name = (void *) d_nladdr ;
-	msg.msg_namelen = sizeof(struct sockaddr_nl);
-	msg.msg_iov = &iov;
-	msg.msg_iovlen = 1;
-	sendmsg(fd, &msg, 0);
-	free(nlh);
-}
 
 void *read_from_tcpsock(void * nothing)
 {
 	int res= 0;
-	char *data;
 	u_int16_t len = 0;
+	char *data;
 	data = malloc(MAX_PAYLOAD);
+	if (data == NULL) {
+		perror("malloc");
+		pthread_exit(NULL);
+	}
 	while(1) {
 		len = 0;
-		res = read(tcpsend_fd, &len, sizeof(u_int16_t));
+		res = readn(tcpsend_fd, (char*) &len, sizeof(u_int16_t));
 		if(res < 0) {
 			perror("read");
 			pthread_exit(NULL);
@@ -116,48 +64,45 @@ void *read_from_tcpsock(void * nothing)
 			pthread_exit(NULL);
 		}
 		hexprint(data, len);
-		res = nlsend_msg(netlink_fd, &d_nladdr, data, len);
+		res = write(chrdev_fd, data, len);
 		if(res < 0 ) {
-			perror("write in netlink_fd in read_from_tcpsock");
+			perror("write in chrdev_fd in read_from_tcpsock");
 			pthread_exit(NULL);
 		}
 	}
 }
 
-void *read_from_netlink(void *nothing)
+void *read_from_chrdev(void *nothing)
 {
-	struct nlmsghdr *nl_hdr;
-	struct msghdr msg_hdr;
-	struct iovec iov;
-	u_int16_t len;
-	int res;
+	int res = 0;
+	u_int16_t len = 0;
+	char *data;
 
-	nl_hdr = malloc(NLMSG_SPACE(MAX_PAYLOAD));
-	memset(nl_hdr, 0, NLMSG_SPACE(MAX_PAYLOAD));
-	iov.iov_base = nl_hdr;
-	iov.iov_len = NLMSG_SPACE(MAX_PAYLOAD);
-
-	msg_hdr.msg_name = &d_nladdr;
-	msg_hdr.msg_namelen = sizeof(struct sockaddr_nl);
-	msg_hdr.msg_iov = &iov;
-	msg_hdr.msg_iovlen = 1;
+	data = malloc(MAX_PAYLOAD);
+	if( data ==NULL) {
+		perror("malloc in readfromchrdev");
+		pthread_exit(NULL);
+	}
 	while(1) {
-	len = recvmsg(netlink_fd, &msg_hdr, 0);
-	len = len - NLMSG_LENGTH(0);
-	printf("received from kernel = %d bytes\n", len);
-	hexprint(NLMSG_DATA(nl_hdr), len);
-	len = htons(len);
-	res = write(tcpsend_fd, &len, sizeof(u_int16_t));
-	if(res < 0) {
-		perror("write in read_from_nl");
-		pthread_exit(NULL);
+		len = read(chrdev_fd, data, MAX_PAYLOAD);
+		if(res < 0) {
+			perror("read in readfromchrdev");
+			pthread_exit(NULL);
+		}
+		len = htons(len);
+		res = writen(tcpsend_fd, (char*) &len, sizeof(u_int16_t));
+		if(res < 0) {
+			perror("read in readfromchrdev");
+			pthread_exit(NULL);
+		}
+		res = writen(tcpsend_fd, data, ntohs(len));
+		if(res < 0) {
+			perror("read in readfromchrdev");
+			pthread_exit(NULL);
+		}
+
 	}
-	res = writen(tcpsend_fd, NLMSG_DATA(nl_hdr), ntohs(len));
-	if(res < 0) {
-		perror("writen in read_from_nl");
-		pthread_exit(NULL);
-	}
-	}
+
 }
 
 int readn(int fd, char *data, u_int16_t len)
@@ -204,11 +149,12 @@ void hexprint(char *data, u_int64_t len)
 
 int main(int argc, char **argv)
 {
-	const char *short_opt = "d:p:s";
+	const char *short_opt = "d:p:sf:";
 	const struct option long_option[] = {
 		{"dest", 1, NULL, 'd'},
 		{"port", 1, NULL, 'p'},
-		{"serv", 0, NULL, 's'}
+		{"serv", 0, NULL, 's'},
+		{"file", 1, NULL, 'f'}
 	};
 	int next_arg;
 
@@ -226,6 +172,9 @@ int main(int argc, char **argv)
 		case 's':
 			server = 1;
 			break;
+		case 'f':
+			strcpy(file_name, optarg);
+			break;
 		case -1:
 			break;
 		case '?':
@@ -233,32 +182,11 @@ int main(int argc, char **argv)
 		}
 	}while(next_arg != -1);
 
-	netlink_fd = socket(AF_NETLINK ,SOCK_RAW , NETLINK_NITRO );
-	if (netlink_fd < 0) {
-		printf("error in socket\n");
-		perror("socket: netlink_fd");
+	chrdev_fd = open(file_name, O_RDWR);
+	if(chrdev_fd = -1) {
+		perror("open chrdev");
 		exit(EXIT_FAILURE);
 	}
-
-
-	/* source address */
-	memset(&s_nladdr, 0 ,sizeof(s_nladdr));
-	s_nladdr.nl_family = AF_NETLINK ;
-	s_nladdr.nl_pad = 0;
-	s_nladdr.nl_pid = getpid();
-	res = bind(netlink_fd, (struct sockaddr*)&s_nladdr, sizeof(s_nladdr));
-
-	if (res < 0 ) {
-		printf("error in bind\n");
-		perror("bind netlink_fd");
-		exit(EXIT_FAILURE);
-	}
-
-	/* destination address */
-	memset(&d_nladdr, 0, sizeof(d_nladdr));
-	d_nladdr.nl_family = AF_NETLINK ;
-	d_nladdr.nl_pad = 0;
-	d_nladdr.nl_pid = 0; /* destined to kernel */
 
 	tcpsock_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if(tcpsock_fd < 0 ) {
@@ -299,15 +227,6 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 	} else {
-		//struct hostent *ipaddr;
-		//ipaddr = gethostbyname(d_ipaddr);
-		//if(ipaddr == NULL) {
-		//	printf("error in gethostbyname\n");
-		//	perror("gethostbyname:");
-		//	exit(EXIT_FAILURE);
-		//}
-
-		//bcopy(ipaddr->h_addr,&c_sockaddr.sin_addr.s_addr, ipaddr->h_length);
 		c_sockaddr.sin_addr.s_addr = inet_addr(d_ipaddr);
 		c_sockaddr.sin_port = htons(d_ipport);
 		res = connect(tcpsock_fd, (struct sockaddr *)&c_sockaddr, sizeof(c_sockaddr));
@@ -318,18 +237,14 @@ int main(int argc, char **argv)
 		}
 		tcpsend_fd = tcpsock_fd;
 	}
-
-	//nlsend_msg(fd, &d_nladdr, data, strlen(data));
-	//read_and_print(fd,&d_nladdr);
-	res = pthread_create(&recv_tcpthread, NULL, read_from_tcpsock, NULL);
-	nlsend_msg(netlink_fd, &d_nladdr, "abcdefghijklmnopqrstuvwxyz1234567890", strlen("abcdefghijklmnopqrstuvwxyz1234567890"));
-	pthread_create(&recv_nlthread, NULL, read_from_netlink, NULL);
+	pthread_create(&recv_tcpthread, NULL, read_from_tcpsock, NULL);
+	pthread_create(&recv_chrdevthread, NULL, read_from_chrdev, NULL);
 	pthread_join(recv_tcpthread, NULL);
-	pthread_join(recv_nlthread, NULL);
+	pthread_join(recv_chrdevthread, NULL);
 	if(server)
 		close(tcpsend_fd);
 	close(tcpsock_fd);
-	close(netlink_fd);
+	close(chrdev_fd);
 	return (EXIT_SUCCESS);
 
 }
