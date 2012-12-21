@@ -53,7 +53,7 @@ void *read_from_tcpsock(void * nothing)
 		}
 		//printf("len = %d",len);
 		len = ntohs(len);
-		printf("received %d bytes from tcpsock\n",len);
+		//printf("received %d bytes from tcpsock\n",len);
 		if(len > MAX_PAYLOAD) {
 			printf("length exceeds MAX_PAYLOAD");
 			exit(EXIT_FAILURE);
@@ -63,7 +63,7 @@ void *read_from_tcpsock(void * nothing)
 			perror("readn");
 			pthread_exit(NULL);
 		}
-		hexprint(data, len);
+		//hexprint(data, len);
 		res = write(chrdev_fd, data, len);
 		if(res < 0 ) {
 			perror("write in chrdev_fd in read_from_tcpsock");

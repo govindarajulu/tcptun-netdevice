@@ -100,8 +100,8 @@ int tcptun_tx(struct sk_buff *skb, struct net_device *dev)
 
 	spin_lock(&qlock);
 	if (fetch == feed) { /* queue empty */
-		printk(KERN_INFO"queue is empty\n");
-		printk(KERN_INFO"feed = %d, fetch = %d\n", feed, fetch);
+		//printk(KERN_INFO"queue is empty\n");
+		//printk(KERN_INFO"feed = %d, fetch = %d\n", feed, fetch);
 		que[feed] = skb;
 		feed = inc_fetchfeed(feed);
 		spin_unlock(&qlock);
@@ -111,15 +111,15 @@ int tcptun_tx(struct sk_buff *skb, struct net_device *dev)
 	}
 	i = inc_fetchfeed(feed);
 	if(i == fetch) { /* queue full*/
-		printk(KERN_INFO"queue is full\n");
-		printk(KERN_INFO"feed = %d, fetch = %d\n", feed, fetch);
+		//printk(KERN_INFO"queue is full\n");
+		//printk(KERN_INFO"feed = %d, fetch = %d\n", feed, fetch);
 		netif_stop_queue(dev);
 		spin_unlock(&qlock);
 		return -1;
 
 	} else {
-		printk(KERN_INFO"queue is not full\n");
-		printk(KERN_INFO"feed = %d, fetch = %d\n", feed, fetch);
+		//printk(KERN_INFO"queue is not full\n");
+		//printk(KERN_INFO"feed = %d, fetch = %d\n", feed, fetch);
 		que[feed] = skb;
 		feed = inc_fetchfeed(feed);
 		spin_unlock(&qlock);
@@ -131,8 +131,25 @@ int tcptun_tx(struct sk_buff *skb, struct net_device *dev)
 
 void tcptun_tx_timeout(struct net_device *dev)
 {
+	int res;
+	int i;
 
+	spin_lock(&qlock);
+	i = inc_fetchfeed(feed);
 	printk(KERN_INFO"tx_timeout called \n");
+	if (i == fetch ) {
+		while(fetch != feed ) {
+			kfree_skb(que[fetch]);
+			fetch = inc_fetchfeed(fetch);
+		}
+		spin_unlock(&qlock);
+		netif_wakeup_queue(&tcptun_netdev);
+		return;
+	} else {
+		spin_unlock(&qlock);
+		netif_wakeup_queue(&tcptun_netdev);
+		return;
+	}
 }
 
 int err;
