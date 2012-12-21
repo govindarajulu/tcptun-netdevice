@@ -143,7 +143,7 @@ void tcptun_tx_timeout(struct net_device *dev)
 			fetch = inc_fetchfeed(fetch);
 		}
 		spin_unlock(&qlock);
-		netif_wakeup_queue(&tcptun_netdev);
+		netif_wake_queue(&tcptun_netdev);
 		return;
 	} else {
 		spin_unlock(&qlock);
